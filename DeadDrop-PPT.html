@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeadDrop 黑客松路演 · 心路版</title>
+  <style>
+    :root {
+      --ink: #f6f1e8;
+      --muted: #b9afa3;
+      --coal: #151311;
+      --paper: #f0e6d7;
+      --coral: #ff5c4a;
+      --mint: #7de2b8;
+      --amber: #e6b450;
+      --line: rgba(246, 241, 232, 0.14);
+      --shadow: 0 34px 80px rgba(0, 0, 0, 0.42);
+      --slide-ratio: calc(21 / 9);
+      --stage-bg: #090806;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--stage-bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    .viewport {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: var(--stage-bg);
+    }
+
+    .deck {
+      --px: calc(100cqw / 2330);
+      position: relative;
+      width: min(100vw, calc(100dvh * var(--slide-ratio)));
+      height: min(100dvh, calc(100vw / var(--slide-ratio)));
+      aspect-ratio: 21 / 9;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(246, 241, 232, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(246, 241, 232, 0.025) 1px, transparent 1px),
+        var(--coal);
+      background-size: calc(40 * var(--px)) calc(40 * var(--px));
+      box-shadow: var(--shadow);
+      isolation: isolate;
+      container-type: size;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: calc(58 * var(--px)) 1fr;
+      column-gap: calc(30 * var(--px));
+      padding: calc(76 * var(--px)) calc(92 * var(--px)) calc(66 * var(--px));
+      opacity: 0;
+      pointer-events: none;
+      transform: perspective(calc(2100 * var(--px))) translateX(calc(74 * var(--px))) rotateY(-8deg) scale(0.985);
+      transform-origin: right center;
+      transition:
+        opacity 520ms ease,
+        transform 620ms cubic-bezier(0.2, 0.78, 0.12, 1);
+    }
+
+    .slide.current {
+      z-index: 3;
+      opacity: 1;
+      pointer-events: auto;
+      transform: perspective(calc(2100 * var(--px))) translateX(0) rotateY(0) scale(1);
+    }
+
+    .slide.prev {
+      z-index: 1;
+      transform: perspective(calc(2100 * var(--px))) translateX(calc(-112 * var(--px))) rotateY(10deg) scale(0.985);
+      transform-origin: left center;
+    }
+
+    .slide.next {
+      z-index: 1;
+      transform: perspective(calc(2100 * var(--px))) translateX(calc(112 * var(--px))) rotateY(-10deg) scale(0.985);
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 14% 9%, rgba(255, 92, 74, 0.15), transparent calc(230 * var(--px))),
+        linear-gradient(90deg, rgba(246, 241, 232, 0.045), transparent 38%),
+        var(--coal);
+    }
+
+    .slide::after {
+      content: "";
+      position: absolute;
+      inset: calc(22 * var(--px));
+      z-index: -1;
+      border: 1px solid rgba(246, 241, 232, 0.08);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      grid-column: 1 / 7;
+      align-self: start;
+      color: var(--mint);
+      font-size: calc(27 * var(--px));
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .section-mark {
+      grid-column: 10 / 13;
+      justify-self: end;
+      color: rgba(246, 241, 232, 0.42);
+      font-size: calc(23 * var(--px));
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: calc(122 * var(--px));
+      line-height: 0.95;
+      font-weight: 880;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: calc(76 * var(--px));
+      line-height: 1.02;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: calc(36 * var(--px));
+      line-height: 1.16;
+      font-weight: 820;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: calc(32 * var(--px));
+      line-height: 1.44;
+      font-weight: 520;
+    }
+
+    .quote {
+      color: var(--paper);
+      font-size: calc(45 * var(--px));
+      line-height: 1.25;
+      font-weight: 780;
+    }
+
+    .highlight {
+      color: var(--coral);
+    }
+
+    .mint {
+      color: var(--mint);
+    }
+
+    .amber {
+      color: var(--amber);
+    }
+
+    .hero-copy {
+      grid-column: 1 / 8;
+      grid-row: 2;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: calc(32 * var(--px));
+      padding-bottom: calc(18 * var(--px));
+    }
+
+    .wordmark {
+      font-size: calc(178 * var(--px));
+      line-height: 0.84;
+      font-weight: 900;
+    }
+
+    .promise {
+      max-width: calc(1020 * var(--px));
+      color: var(--paper);
+      font-size: calc(45 * var(--px));
+      line-height: 1.24;
+      font-weight: 760;
+    }
+
+    .hero-phones,
+    .phone-cloud,
+    .final-phones {
+      grid-column: 8 / 13;
+      grid-row: 2;
+      position: relative;
+      align-self: center;
+      height: calc(780 * var(--px));
+    }
+
+    .phone {
+      position: absolute;
+      width: calc(348 * var(--px));
+      height: calc(754 * var(--px));
+      overflow: hidden;
+      border: calc(10 * var(--px)) solid rgba(246, 241, 232, 0.1);
+      border-radius: calc(34 * var(--px));
+      background: #050505;
+      box-shadow: 0 calc(28 * var(--px)) calc(70 * var(--px)) rgba(0, 0, 0, 0.44);
+    }
+
+    .phone img,
+    .mini-phone img {
+      display: block;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .phone img {
+      height: 100%;
+    }
+
+    .hero-phones .phone:nth-child(1) {
+      right: calc(348 * var(--px));
+      top: calc(88 * var(--px));
+      z-index: 1;
+      opacity: 0.52;
+      transform: rotate(-7deg) scale(0.84);
+    }
+
+    .hero-phones .phone:nth-child(2) {
+      right: calc(164 * var(--px));
+      top: 0;
+      z-index: 3;
+    }
+
+    .hero-phones .phone:nth-child(3) {
+      right: 0;
+      top: calc(58 * var(--px));
+      z-index: 2;
+      opacity: 0.72;
+      transform: rotate(5deg) scale(0.91);
+    }
+
+    .feature-copy,
+    .why-copy,
+    .core-copy,
+    .simple-copy,
+    .future-copy {
+      grid-column: 1 / 6;
+      grid-row: 2;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: calc(36 * var(--px));
+    }
+
+    .feature-grid {
+      grid-column: 6 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: calc(20 * var(--px));
+    }
+
+    .feature {
+      min-height: calc(190 * var(--px));
+      padding: calc(26 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+    }
+
+    .feature b,
+    .scene b,
+    .step b,
+    .rule b,
+    .future-card b {
+      display: block;
+      color: var(--paper);
+      font-size: calc(30 * var(--px));
+      line-height: 1.14;
+      font-weight: 820;
+      margin-bottom: calc(14 * var(--px));
+    }
+
+    .feature span,
+    .scene span,
+    .step span,
+    .rule span,
+    .future-card span {
+      display: block;
+      color: var(--muted);
+      font-size: calc(24 * var(--px));
+      line-height: 1.35;
+    }
+
+    .journey {
+      grid-column: 1 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: 1.08fr repeat(4, minmax(0, 0.9fr));
+      gap: calc(22 * var(--px));
+      align-items: center;
+    }
+
+    .journey-copy {
+      display: flex;
+      flex-direction: column;
+      gap: calc(30 * var(--px));
+      padding-right: calc(24 * var(--px));
+    }
+
+    .journey-copy h2 {
+      font-size: calc(72 * var(--px));
+    }
+
+    .mini-phone {
+      position: relative;
+      justify-self: center;
+      display: flex;
+      flex-direction: column;
+      gap: calc(14 * var(--px));
+      width: 100%;
+      max-width: calc(338 * var(--px));
+    }
+
+    .mini-phone img {
+      height: auto;
+      aspect-ratio: 860 / 1864;
+      border: calc(8 * var(--px)) solid rgba(246, 241, 232, 0.1);
+      border-radius: calc(28 * var(--px));
+      background: #050505;
+      box-shadow: 0 calc(18 * var(--px)) calc(48 * var(--px)) rgba(0, 0, 0, 0.38);
+    }
+
+    .mini-phone::after {
+      content: attr(data-step);
+      padding: calc(13 * var(--px)) calc(14 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+      color: var(--paper);
+      font-size: calc(23 * var(--px));
+      font-weight: 760;
+      text-align: center;
+    }
+
+    .why-scenes {
+      grid-column: 6 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: calc(20 * var(--px));
+    }
+
+    .scene {
+      min-height: calc(392 * var(--px));
+      padding: calc(28 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .scene .place {
+      color: var(--mint);
+      font-size: calc(22 * var(--px));
+      font-weight: 760;
+    }
+
+    .core-layout {
+      grid-column: 1 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: calc(60 * var(--px));
+      align-items: center;
+    }
+
+    .core-panel {
+      padding: calc(38 * var(--px));
+      border: 1px solid rgba(255, 92, 74, 0.56);
+      border-radius: 8px;
+      background: #f3e7d6;
+      color: #151311;
+    }
+
+    .core-panel b {
+      display: block;
+      font-size: calc(62 * var(--px));
+      line-height: 1.06;
+      font-weight: 880;
+      margin-bottom: calc(24 * var(--px));
+    }
+
+    .core-panel span {
+      display: block;
+      color: #5a4b3d;
+      font-size: calc(30 * var(--px));
+      line-height: 1.34;
+      font-weight: 640;
+    }
+
+    .phone-cloud .phone:nth-child(1) {
+      left: 0;
+      top: calc(18 * var(--px));
+      z-index: 2;
+      transform: rotate(-4deg);
+    }
+
+    .phone-cloud .phone:nth-child(2) {
+      left: calc(294 * var(--px));
+      top: calc(44 * var(--px));
+      z-index: 3;
+      transform: rotate(3deg);
+    }
+
+    .phone-cloud .phone:nth-child(3) {
+      left: calc(586 * var(--px));
+      top: calc(78 * var(--px));
+      z-index: 1;
+      opacity: 0.78;
+      transform: rotate(-2deg) scale(0.92);
+    }
+
+    .iteration {
+      grid-column: 1 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: 0.86fr 1.14fr;
+      gap: calc(66 * var(--px));
+      align-items: center;
+    }
+
+    .timeline {
+      display: grid;
+      gap: calc(18 * var(--px));
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: calc(82 * var(--px)) 1fr;
+      gap: calc(24 * var(--px));
+      padding: calc(26 * var(--px)) calc(28 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+    }
+
+    .step-num {
+      width: calc(66 * var(--px));
+      height: calc(66 * var(--px));
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(125, 226, 184, 0.54);
+      border-radius: 50%;
+      color: var(--mint);
+      font-size: calc(28 * var(--px));
+      font-weight: 850;
+    }
+
+    .rule-stack {
+      grid-column: 6 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: calc(20 * var(--px));
+    }
+
+    .rule {
+      min-height: calc(430 * var(--px));
+      padding: calc(30 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+    }
+
+    .rule .no {
+      display: block;
+      color: var(--coral);
+      font-size: calc(56 * var(--px));
+      line-height: 1;
+      font-weight: 900;
+      margin-bottom: calc(26 * var(--px));
+    }
+
+    .future-grid {
+      grid-column: 6 / 13;
+      grid-row: 2;
+      align-self: center;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: calc(20 * var(--px));
+    }
+
+    .future-card {
+      min-height: calc(180 * var(--px));
+      padding: calc(28 * var(--px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(246, 241, 232, 0.045);
+    }
+
+    .closing {
+      margin-top: calc(34 * var(--px));
+      padding: calc(32 * var(--px)) calc(34 * var(--px));
+      border-radius: 8px;
+      background: #f3e7d6;
+      color: #151311;
+      font-size: calc(40 * var(--px));
+      line-height: 1.2;
+      font-weight: 850;
+    }
+
+    .source-tag {
+      position: absolute;
+      left: calc(92 * var(--px));
+      bottom: calc(34 * var(--px));
+      z-index: 6;
+      color: rgba(246, 241, 232, 0.36);
+      font-size: calc(18 * var(--px));
+      font-weight: 620;
+    }
+
+    .controls {
+      position: absolute;
+      left: 50%;
+      bottom: calc(24 * var(--px));
+      display: flex;
+      gap: calc(12 * var(--px));
+      transform: translateX(-50%);
+      z-index: 20;
+      opacity: 0.35;
+      transition: opacity 180ms ease;
+    }
+
+    .controls:hover {
+      opacity: 1;
+    }
+
+    .icon-btn {
+      width: calc(48 * var(--px));
+      height: calc(48 * var(--px));
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(246, 241, 232, 0.22);
+      border-radius: 50%;
+      background: rgba(9, 8, 6, 0.72);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .icon-btn:focus-visible {
+      outline: calc(3 * var(--px)) solid var(--mint);
+      outline-offset: calc(4 * var(--px));
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 19;
+      height: calc(5 * var(--px));
+      background: rgba(246, 241, 232, 0.08);
+    }
+
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--coral);
+      transition: width 420ms ease;
+    }
+
+    .counter {
+      position: absolute;
+      right: calc(34 * var(--px));
+      bottom: calc(26 * var(--px));
+      z-index: 20;
+      color: rgba(246, 241, 232, 0.38);
+      font-size: calc(17 * var(--px));
+      font-weight: 730;
+    }
+
+    .notes {
+      position: fixed;
+      top: 26px;
+      right: 26px;
+      z-index: 25;
+      display: none;
+      width: min(480px, calc(100vw - 52px));
+      max-height: calc(100vh - 52px);
+      overflow: auto;
+      padding: 26px;
+      border: 1px solid rgba(246, 241, 232, 0.14);
+      border-radius: 8px;
+      background: rgba(9, 8, 6, 0.92);
+      color: var(--paper);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
+
+    .notes.visible {
+      display: block;
+    }
+
+    .notes h4 {
+      margin: 0 0 14px;
+      color: var(--mint);
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .notes p {
+      color: var(--paper);
+      font-size: 22px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport" aria-live="polite">
+    <section class="deck" id="deck">
+      <article class="slide current" data-notes="大家好，我们是 DeadDrop。一句话说明白这个产品：你得走到那个地方，才能看到那里的纸条。反过来，你在那里写的东西，也只有到了那里的人才看得到。">
+        <div class="eyebrow">Hackathon Pitch</div>
+        <div class="section-mark">01 / 10</div>
+        <div class="hero-copy">
+          <div class="wordmark">Dead<br>Drop</div>
+          <h1>把纸条<br>留在<span class="highlight">地点</span>里</h1>
+          <p class="promise">走到一个地方，才能看到别人在这里留下了什么。你也可以写一张，留给下一个来的人。</p>
+        </div>
+        <div class="hero-phones" aria-hidden="true">
+          <div class="phone"><img src="./截图/02-创建匿名身份.png" alt=""></div>
+          <div class="phone"><img src="./截图/01-首页欢迎-DeadDrop.png" alt=""></div>
+          <div class="phone"><img src="./截图/03-地图探索-附近纸条.png" alt=""></div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="先看我们做了什么。功能不多，六个页面，但整条链路是通的。从注册到写完一张纸条，两分钟之内完成。">
+        <div class="eyebrow">Product Highlights</div>
+        <div class="section-mark">02 / 10</div>
+        <div class="feature-copy">
+          <h2>东西不多，<br>但每一步都<span class="highlight">跑通了</span></h2>
+          <p class="lead">匿名注册 → 地图探索 → 看附近纸条 → 选情绪 → 感受身体 → 写下放出去。</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature">
+            <b>匿名身份</b>
+            <span>没有头像，没有粉丝数，没有主页。你不需要先“是谁”，才能说话。</span>
+          </div>
+          <div class="feature">
+            <b>地图探索</b>
+            <span>纸条钉在地图上，不是刷出来的信息流。你在哪里，就看到哪里的东西。</span>
+          </div>
+          <div class="feature">
+            <b>附近纸条</b>
+            <span>到了 50 米范围内，才能看到这里有什么。先看看别人留了什么，再决定要不要自己也写一张。</span>
+          </div>
+          <div class="feature">
+            <b>情绪选择</b>
+            <span>写之前先选一个情绪词。不是随手发帖，是先问问自己：我现在到底什么感受？</span>
+          </div>
+          <div class="feature">
+            <b>身体扫描</b>
+            <span>引导你感受一下身体：胸口闷不闷？肩膀紧不紧？写之前先回到当下。</span>
+          </div>
+          <div class="feature">
+            <b>书写放下</b>
+            <span>写完了就写完了。有人来捡是惊喜，没人捡也没关系，写出来本身就够了。</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="这四个截图就是用户走完的流程。关键是：你不是在“发帖”，你是在“去一个地方”。这个感觉完全不一样。">
+        <div class="eyebrow">Experience Path</div>
+        <div class="section-mark">03 / 10</div>
+        <div class="journey">
+          <div class="journey-copy">
+            <h2>不是在发帖，<br>是在<span class="highlight">到达一个地方</span></h2>
+            <p class="lead">整个流程四步：匿名进入 → 打开地图 → 看看这里有什么 → 写一张自己的。不超过两分钟，<br>但感受完全不同于刷社交媒体。</p>
+          </div>
+          <div class="mini-phone" data-step="匿名进入"><img src="./截图/02-创建匿名身份.png" alt="创建匿名身份"></div>
+          <div class="mini-phone" data-step="探索附近"><img src="./截图/03-地图探索-附近纸条.png" alt="地图探索附近纸条"></div>
+          <div class="mini-phone" data-step="捡起纸条"><img src="./截图/04-纸条列表.png" alt="纸条列表"></div>
+          <div class="mini-phone" data-step="写下放下"><img src="./截图/07-发布-书写放下.png" alt="发布书写放下"></div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="这页拆开讲一下，每个页面背后到底在干什么。不是为了堆功能，每一步都有心理学上的考量。比如身体扫描，这个灵感来自创伤疗愈，In an Unspoken Voice 这本书说，释放情绪不一定需要语言，但需要先感受身体。">
+        <div class="eyebrow">Design Translation</div>
+        <div class="section-mark">04 / 10</div>
+        <div class="feature-copy">
+          <h2>关注身体的感受，<br>用文字记录<span class="highlight">表达</span>等待回应</h2>
+          <p class="lead">这六个页面不是堆功能，它们走的是一个心理过程，从“我不敢说”到“我说出来了，而且好像有人懂”。</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature">
+            <b>匿名身份</b>
+            <span>不用登录社交账号，没有真实信息。你就是一个代号，谁也不知道你是谁。</span>
+          </div>
+          <div class="feature">
+            <b>地图探索</b>
+            <span>你看到的纸条就是在你脚下这个位置写的。不是网上随便哪个人发的，是在这里的人写的。</span>
+          </div>
+          <div class="feature">
+            <b>附近纸条</b>
+            <span>“原来不只是我一个人在这里有这种感觉。” 这是大部分用户打开纸条时的第一反应。</span>
+          </div>
+          <div class="feature">
+            <b>情绪选择</b>
+            <span>先选一个词：焦虑？孤独？释然？给说不清的感觉找一个名字，后面写起来更容易。</span>
+          </div>
+          <div class="feature">
+            <b>身体扫描</b>
+            <span>停一下，感受身体。这一步来自 In an Unspoken Voice：情绪不只在脑子里，它在身体里。</span>
+          </div>
+          <div class="feature">
+            <b>纸条详情</b>
+            <span>没有点赞、评论区、转发。你读了，纸条就多活一天。这就是最轻的回应。</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="为什么做这个？因为我自己有过那种感觉，在一个地方特别想说点什么，但发朋友圈不对，跟朋友说也不对。那一刻你不需要社交，你只需要知道有人也在这里待过。">
+        <div class="eyebrow">Why We Build</div>
+        <div class="section-mark">05 / 10</div>
+        <div class="why-copy">
+          <h2>为什么不是再做一个<span class="highlight">社交</span>？</h2>
+          <p class="lead">不是每种孤独都需要聊天对象。有时候你只需要知道：有人也在这里待过，也是这种感觉。</p>
+          <p class="quote">情绪和创伤是有<span class="mint">现场</span>的。</p>
+        </div>
+        <div class="why-scenes">
+          <div class="scene">
+            <div>
+              <b>医院走廊</b>
+              <span>凌晨三点陪护，睡不着。发朋友圈太重，跟朋友说又不知道怎么开口。如果这条走廊上有人写过“我也在这里熬过”，那就够了。</span>
+            </div>
+            <div class="place">候诊室 / 陪护 / 化疗</div>
+          </div>
+          <div class="scene">
+            <div>
+              <b>商务酒店</b>
+              <span>出差，标准间，一个人吃外卖。上一个住客写过“也是一个人来的，这城市的夜景还不错”，你会觉得没那么孤。</span>
+            </div>
+            <div class="place">出差 / 深夜 / 外卖</div>
+          </div>
+          <div class="scene">
+            <div>
+              <b>图书馆座位</b>
+              <span>复习到崩溃，想走。座位上有人三个月前写：“我在这个位子上坐了八个月，后来上岸了。” 你又坐下来了。</span>
+            </div>
+            <div class="place">校园 / 备考 / 固定座位</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="所以我们的核心不是“附近的人”，是“附近的情绪”。地点做三件事：它是门槛，你得在那里；它是语境，同样的话在不同地方意思不一样；它是信任，我知道你也到过这里，我就更愿意说真话。">
+        <div class="eyebrow">Core Thesis</div>
+        <div class="section-mark">06 / 10</div>
+        <div class="core-layout">
+          <div>
+            <h2>地点不是标签，<br>地点是<span class="highlight">语境</span></h2>
+            <p class="lead" style="margin-top:calc(34 * var(--px));">大众点评问的是“这地方好不好吃”，小红书问的是“这地方好不好拍”。我们问的是此时此地此情此景，有没有人有过类似的感受？</p>
+          </div>
+          <div class="core-panel">
+            <b>你得走到那里，才能看到那里的纸条。你的脚步就是密码。</b>
+            <span>地点做了三件事：<br>· 它是阅读权限：不到现场看不了<br>· 它是情绪语境：同样的话在医院和酒吧意思完全不同<br>· 它是信任来源：我知道你也在这里，我就更敢说真话</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="聊聊我们怎么想到现在这个形态的。一开始我们列了很长的功能清单，什么加好友、私聊、勋章系统、品牌合作都想过。后来越想越觉得不对，加好友就会经营人设，有了私聊地点就不重要了，整个产品就滑向了另一个陌陌。所以我们反过来做减法。">
+        <div class="eyebrow">Iteration</div>
+        <div class="section-mark">07 / 10</div>
+        <div class="iteration">
+          <div>
+            <h2>最开始，我们想做的东西<span class="highlight">多得多</span></h2>
+            <p class="lead" style="margin-top:calc(34 * var(--px));">我们列过 18 个功能模块，包括好友系统、私聊、成就勋章、品牌合作。后来一个一个砍，砍到只剩下“在一个地方放下纸条、捡起纸条”。</p>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div>
+                <b>第一版很满</b>
+                <span>注册、地图、热力图、搜索、纸条列表、回复链、聊天、加好友、勋章系统、品牌合作……</span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div>
+                <b>越想越不对</b>
+                <span>加好友 → 聊天 → 关系链 → 经营人设。这不就是另一个陌陌吗？</span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div>
+                <b>问题改了</b>
+                <span>用户在一个地方最需要的到底是什么？不是社交，是“有人也在这里待过”。</span>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div>
+                <b>最后做减法</b>
+                <span>砍掉好友、私聊、推荐算法、排行榜，只留“到达、感受、放下、被读到”。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="我们砍了很多。这里列三个最典型的。加好友、私聊、热门推荐。不是做不了，是做了之后产品就变味了。特别是热门推荐，有了算法排序，那种凌晨三点一个人写的安静纸条就永远不会被看到，但那恰恰是这个产品最该保护的东西。">
+        <div class="eyebrow">What We Cut</div>
+        <div class="section-mark">08 / 10</div>
+        <div class="simple-copy">
+          <h2>这三个功能，我们想过，<br>然后<span class="highlight">故意不做</span></h2>
+          <p class="lead">做黑客松很容易往上堆功能。但我们发现，加一个错的东西，整个产品的感觉就变了。</p>
+        </div>
+        <div class="rule-stack">
+          <div class="rule">
+            <span class="no">CUT</span>
+            <b>加好友</b>
+            <span>有了好友列表，人就开始想“对方会怎么看我”。匿名就白匿了。</span>
+          </div>
+          <div class="rule">
+            <span class="no">CUT</span>
+            <b>无限私聊</b>
+            <span>一旦能脱离地点随便聊天，地点就没意义了。你想知道的不是“这个人怎么样”，而是“这个地方有什么”。</span>
+          </div>
+          <div class="rule">
+            <span class="no">CUT</span>
+            <b>热门推荐</b>
+            <span>有了热门排行，声音大的人会把声音小的人淹掉。凌晨三点医院走廊写的那种纸条，永远上不了热门，但它最需要被看到。</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="为什么看起来功能这么少？因为我们给自己定了规则。对话绑在地点上，离开就暂停。不知道对方是谁。关系会自然褪色。听起来很限制，但这些限制本身就是体验。像两个陌生人在雨天同一个屋檐下躲雨，雨停了，各自走开。那十分钟是真实的。">
+        <div class="eyebrow">Why It Looks Simple</div>
+        <div class="section-mark">09 / 10</div>
+        <div class="simple-copy">
+          <h2>功能简单，因为我们严格遵循<span class="highlight">三条规则</span></h2>
+          <p class="lead">不是没想过做更多，而是每加一样东西我们都会问：这会不会让人开始“社交”而不是“表达”？</p>
+        </div>
+        <div class="rule-stack">
+          <div class="rule">
+            <span class="no">1</span>
+            <b>离开地点，对话就封存</b>
+            <span>你在图书馆三楼和一个人聊了几句，离开图书馆，对话就暂停。下次回去，才能继续。</span>
+          </div>
+          <div class="rule">
+            <span class="no">2</span>
+            <b>你永远不知道对方是谁</b>
+            <span>没有头像、昵称、主页。对方就是“图书馆三楼的那个人”或“医院走廊凌晨三点的那个人”。</span>
+          </div>
+          <div class="rule">
+            <span class="no">3</span>
+            <b>关系会自然褪色</b>
+            <span>30 天没在同一个地点出现，对话会慢慢变淡，最后折叠进“记忆”里。没有“不回消息”的焦虑。</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide next" data-notes="最后说一下怎么验证。现场就能体验，我们在会场放了30多张纸条。然后先在校园和医院这种情绪密度高的地方做，不急着铺开。冷启动的“没人用”问题，我们设计了先写后读机制和AI城市精灵来解决。">
+        <div class="eyebrow">Demo & Next</div>
+        <div class="section-mark">10 / 10</div>
+        <div class="future-copy">
+          <h2>接下来怎么做，以及今天你们可以<span class="highlight">体验</span></h2>
+          <p class="lead">先把核心体验做到位，在最容易产生共鸣的地方验证。不急着做大，先做深。</p>
+          <div class="closing">Body first, logic second.</div>
+        </div>
+        <div class="future-grid">
+          <div class="future-card">
+            <b>会场 Demo</b>
+            <span>我们已经在这个会场和周边 500 米放了 30 多张纸条。打开 App，走出去，现在就能捡。</span>
+          </div>
+          <div class="future-card">
+            <b>冷启动</b>
+            <span>· 先写后读：写一张才能解锁看别人的<br>· AI 城市精灵：空白地点先放一些<br>· 热力图：引导用户去纸条密度高的地方</span>
+          </div>
+          <div class="future-card">
+            <b>高共鸣场景</b>
+            <span>大学校园、医院候诊区、商务酒店。先做情绪密度最高的地方。</span>
+          </div>
+          <div class="future-card">
+            <b>商业化边界</b>
+            <span>企业员工关怀、医疗机构情绪监测、城市情绪数据。全部脱敏、匿名、聚合，不碰个人数据。</span>
+          </div>
+        </div>
+      </article>
+
+      <nav class="controls" aria-label="Slide controls">
+        <button class="icon-btn" id="prevBtn" aria-label="上一页" title="上一页">‹</button>
+        <button class="icon-btn" id="nextBtn" aria-label="下一页" title="下一页">›</button>
+      </nav>
+      <div class="counter" id="counter">01 / 10</div>
+      <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+    </section>
+  </main>
+
+  <aside class="notes" id="notes" aria-label="Speaker notes">
+    <h4>Speaker Notes</h4>
+    <p id="notesText"></p>
+  </aside>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const progress = document.getElementById("progress");
+    const counter = document.getElementById("counter");
+    const notes = document.getElementById("notes");
+    const notesText = document.getElementById("notesText");
+    let current = 0;
+
+    function render() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove("prev", "current", "next");
+        if (index < current) slide.classList.add("prev");
+        else if (index === current) slide.classList.add("current");
+        else slide.classList.add("next");
+      });
+
+      const shown = String(current + 1).padStart(2, "0");
+      const total = String(slides.length).padStart(2, "0");
+      counter.textContent = `${shown} / ${total}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      notesText.textContent = slides[current].dataset.notes || "";
+      history.replaceState(null, "", `#${current + 1}`);
+    }
+
+    function go(delta) {
+      current = Math.max(0, Math.min(slides.length - 1, current + delta));
+      render();
+    }
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      render();
+    }
+
+    document.getElementById("prevBtn").addEventListener("click", () => go(-1));
+    document.getElementById("nextBtn").addEventListener("click", () => go(1));
+
+    window.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+        event.preventDefault();
+        go(1);
+      }
+      if (["ArrowLeft", "PageUp", "Backspace"].includes(event.key)) {
+        event.preventDefault();
+        go(-1);
+      }
+      if (event.key.toLowerCase() === "n") {
+        notes.classList.toggle("visible");
+      }
+      if (event.key.toLowerCase() === "f" && document.fullscreenEnabled) {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      }
+      if (/^[1-9]$/.test(event.key)) {
+        goTo(Number(event.key) - 1);
+      }
+      if (event.key === "0") {
+        goTo(9);
+      }
+    });
+
+    const hashIndex = Number(window.location.hash.replace("#", "")) - 1;
+    if (!Number.isNaN(hashIndex)) current = Math.max(0, Math.min(slides.length - 1, hashIndex));
+    render();
+  </script>
+</body>
+</html>
