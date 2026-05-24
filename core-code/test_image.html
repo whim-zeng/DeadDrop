@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; background: #333; }
+    #test1, #test2, #test3 { width: 300px; height: 300px; margin: 10px; background: #fff; }
+  </style>
+</head>
+<body>
+  <h3 style="color:white">Test 1: SVG image with href (SVG fallback)</h3>
+  <svg id="test1" viewBox="0 0 300 300">
+    <image href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="0" y="0" width="256" height="256"/>
+  </svg>
+
+  <h3 style="color:white">Test 2: SVG image with xlink:href (SVG fallback)</h3>
+  <svg id="test2" viewBox="0 0 300 300">
+    <image xlink:href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="0" y="0" width="256" height="256"/>
+  </svg>
+
+  <h3 style="color:white">Test 3: SVG image with href (real PNG)</h3>
+  <svg id="test3" viewBox="0 0 300 300">
+    <image href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/300px-PNG_transparency_demonstration_1.png" x="0" y="0" width="256" height="256"/>
+  </svg>
+</body>
+</html>

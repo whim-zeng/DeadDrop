@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "DeadDrop",
+    "slug": "deddrop",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.deddrop.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "DeadDrop needs your location to find nearby notes and verify you're physically present to unlock them.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Optional background location for proximity alerts.",
+        "NSMicrophoneUsageDescription": "DeadDrop uses your microphone to record voice notes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.deddrop.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECORD_AUDIO",
+        "FOREGROUND_SERVICE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow DeadDrop to use your location to find nearby notes."
+        }
+      ]
+    ]
+  }
+}

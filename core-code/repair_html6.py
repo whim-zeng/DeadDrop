@@ -1,0 +1,64 @@
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
+with open('E:\\ThreeInOne\\DeadDrop\\prompts\\software\\demo-server\\static\\index.html', 'rb') as f:
+    data = f.read()
+
+# Replace specific byte patterns: <chinese_prefix> + ef bf bd + 3f -> correct character
+# We work in bytes for precision
+replacements = [
+    # 开心
+    (b"\xe5\xbc\x80\xef\xbf\xbd?", b"\xe5\xbc\x80\xe5\xbf\x83"),
+    # 愤怒
+    (b"\xe6\x84\xa4\xef\xbf\xbd?", b"\xe6\x84\xa4\xe6\x80\x92"),
+    # 秘密
+    (b"\xe7\xa7\x98\xef\xbf\xbd?/h1>", b"\xe7\xa7\x98\xe5\xaf\x86/h1>"),
+    # 听见。
+    (b"\xe5\x90\xac\xe8\xa7\x81\xef\xbf\xbd?/p>", b"\xe5\x90\xac\xe8\xa7\x81\xe3\x80\x82/p>"),
+    # 探索
+    (b"\xe6\x8e\xa2\xef\xbf\xbd?/button>", b"\xe6\x8e\xa2\xe7\xb4\xa2/button>"),
+    # 查询
+    (b"\xe6\x9f\xa5\xef\xbf\xbd?/p>", b"\xe6\x9f\xa5\xe8\xaf\xa2/p>"),
+    # 一个
+    (b"\xe4\xb8\x80\xef\xbf\xbd?/button>", b"\xe4\xb8\x80\xe4\xb8\xaa/button>"),
+    # 纸条 (multiple occurrences)
+    (b"\xe5\xbc\xa0\xe7\xba\xb8\xef\xbf\xbd?/p>", b"\xe5\xbc\xa0\xe7\xba\xb8\xe6\x9d\xa1/p>"),
+    # 解锁
+    (b"\xe8\xa7\xa3\xef\xbf\xbd? :", b"\xe8\xa7\xa3\xe9\x94\x81' :"),
+    # 回复
+    (b"\xe5\x9b\x9e\xef\xbf\xbd?/p>", b"\xe5\x9b\x9e\xe5\xa4\x8d/p>"),
+    # 发送
+    (b"\xe5\x8f\x91\xef\xbf\xbd?/button>", b"\xe5\x8f\x91\xe9\x80\x81/button>"),
+    # 想法...
+    (b"\xe6\x83\xb3\xef\xbf\xbd?..", b"\xe6\x83\xb3\xe6\xb3\x95..."),
+    # 孤 (avatar)
+    (b")\">\xef\xbf\xbd?/div>\r\n       ", b")\">\xe5\xad\xa4</div>\r\n       "),
+    # 深 (avatar)
+    (b")\">\xef\xbf\xbd?/div>\r\n    ", b")\">\xe6\xb7\xb1</div>\r\n    "),
+    # 纸条 (chat)
+    (b"\xe7\xba\xb8\xef\xbf\xbd?/p>", b"\xe7\xba\xb8\xe6\x9d\xa1/p>"),
+    # 分钟前
+    (b"\xe9\x92\x9f\xef\xbf\xbd?/span>", b"\xe9\x92\x9f\xe5\x89\x8d/span>"),
+    # 很美
+    (b"\xe5\xbe\x88\xef\xbf\xbd?/p>", b"\xe5\xbe\x88\xe7\xbe\x8e/p>"),
+    # 小时前
+    (b"\xe6\x97\xb6\xef\xbf\xbd?/span>", b"\xe6\x97\xb6\xe5\x89\x8d/span>"),
+    # 纸条 (profile)
+    (b"\xe7\xba\xb8\xef\xbf\xbd?/p></div>", b"\xe7\xba\xb8\xe6\x9d\xa1/p></div>"),
+    # 回复 (profile)
+    (b"\xe5\x9b\x9e\xef\xbf\xbd?/p></div>", b"\xe5\x9b\x9e\xe5\xa4\x8d/p></div>"),
+    # 登录
+    (b"\xe7\x99\xbb\xef\xbf\xbd?/span>", b"\xe7\x99\xbb\xe5\xbd\x95/span>"),
+]
+
+for old, new in replacements:
+    if old in data:
+        data = data.replace(old, new)
+
+remaining = data.count(b'\xef\xbf\xbd')
+print(f"Remaining U+FFFD: {remaining}")
+
+with open('E:\\ThreeInOne\\DeadDrop\\prompts\\software\\demo-server\\static\\index.html', 'wb') as f:
+    f.write(data)
+
+print("Done")

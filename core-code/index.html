@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>DeadDrop</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       DeadDrop — Design System (inspired by Anthropic 81k)
+       ========================================================= */
+
+    :root {
+      /* Colors — Warm Slate */
+      --color-slate-1000: #0f0f0e;
+      --color-slate-950: #141413;
+      --color-slate-900: #1a1918;
+      --color-slate-850: #1f1e1d;
+      --color-slate-800: #262624;
+      --color-slate-750: #30302e;
+      --color-slate-700: #3d3d3a;
+      --color-slate-650: #4d4c48;
+      --color-slate-600: #5e5d59;
+      --color-slate-550: #73726c;
+      --color-slate-500: #87867f;
+      --color-slate-450: #9c9a92;
+      --color-slate-400: #b0aea5;
+      --color-slate-350: #c2c0b6;
+      --color-slate-300: #d1cfc5;
+      --color-slate-250: #dedcd1;
+      --color-slate-200: #e8e6dc;
+      --color-slate-150: #f0eee6;
+      --color-slate-100: #f5f4ed;
+      --color-slate-050: #faf9f5;
+      --color-slate-000: #fff;
+
+      --color-clay: #d97757;
+      --color-oat: #e3dacc;
+      --color-olive: #788c5d;
+      --color-cactus: #bcd1ca;
+      --color-sky: #6a9bcc;
+
+      --color-slate-dark: #141413;
+      --color-slate-medium: #3d3d3a;
+      --color-slate-light: #5e5d59;
+      --color-cloud-dark: #87867f;
+      --color-cloud-medium: #b0aea5;
+      --color-cloud-light: #d1cfc5;
+      --color-ivory-dark: #e8e6dc;
+      --color-ivory-medium: #f0eee6;
+      --color-ivory-light: #faf9f5;
+
+      /* Mood colors */
+      --mood-happy: #788c5d;
+      --mood-sad: #6a9bcc;
+      --mood-angry: #d97757;
+      --mood-anxious: #c4a35a;
+      --mood-love: #c46686;
+      --mood-thought: #8b7fb8;
+      --mood-rant: #6a8a9e;
+
+      /* Spacing */
+      --sp-4: 4px;
+      --sp-8: 8px;
+      --sp-12: 12px;
+      --sp-16: 16px;
+      --sp-20: 20px;
+      --sp-24: 24px;
+      --sp-32: 32px;
+      --sp-40: 40px;
+      --sp-48: 48px;
+      --sp-56: 56px;
+      --sp-64: 64px;
+
+      --gap-xs: 8px;
+      --gap-sm: 12px;
+      --gap-md: 16px;
+      --gap-lg: 24px;
+      --gap-xl: 32px;
+
+      /* Typography */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+      /* Easings */
+      --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      color: var(--color-slate-dark);
+      background: var(--color-slate-1000);
+      font-family: var(--font-serif);
+      font-feature-settings: "pnum" on, "lnum" on, "liga" on;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      letter-spacing: -0.01em;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.25;
+      overflow: hidden;
+    }
+
+    ::selection { background: #d9775780; }
+
+    /* App Frame */
+    .app-frame {
+      max-width: 430px;
+      margin: 0 auto;
+      height: 100dvh;
+      position: relative;
+      background: var(--color-ivory-light);
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+
+    /* Typography Scale */
+    .display-serif-xl {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .headline-2 {
+      font-family: var(--font-sans);
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .paragraph-m {
+      font-family: var(--font-serif);
+      font-size: clamp(1rem, 3vw, 1.125rem);
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+    }
+
+    .body-2 {
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 400;
+      line-height: 1.55;
+    }
+
+    .detail-s {
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      font-weight: 400;
+      line-height: 1.25;
+      letter-spacing: -0.005em;
+    }
+
+    .text-prehead {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .mono-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* Scroll Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s var(--ease-out-quart), transform 0.8s var(--ease-out-quart);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* Animations */
+    .slide-up { animation: slideUp 0.35s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Globe Section */
+    .globe-section {
+      position: relative;
+      width: 100%;
+      height: 55vh;
+      min-height: 300px;
+      background: var(--color-ivory-light);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    #globe-viz {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    #globe-viz svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #globe-viz svg .tile-layer image {
+      filter: grayscale(100%) contrast(0.5) brightness(1.45);
+    }
+
+    .globe-overlay {
+      position: relative;
+      z-index: 1;
+      padding: var(--sp-16);
+      background: linear-gradient(to bottom, transparent, var(--color-ivory-light) 90%);
+      pointer-events: none;
+    }
+
+    .globe-overlay > * { pointer-events: auto; }
+
+    .globe-story-country {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--color-oat);
+      color: var(--color-slate-dark);
+      padding: 3px 8px;
+      border-radius: 2px;
+      margin-bottom: var(--gap-xs);
+    }
+
+    .globe-story-quote {
+      font-family: var(--font-serif);
+      font-size: clamp(1.125rem, 3.5vw, 1.375rem);
+      font-weight: 400;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      margin: 0;
+      padding: 0;
+      border: none;
+      color: var(--color-slate-dark);
+    }
+
+    .globe-story-role {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: var(--gap-xs);
+      color: var(--color-slate-light);
+    }
+
+    /* Quote Card (Note Card) */
+    .quote-card {
+      background: var(--color-slate-000);
+      border-radius: 2px;
+      padding: var(--sp-16);
+      border: 1px solid var(--color-slate-200);
+    }
+
+    .quote-card__mark {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      line-height: 1;
+      color: var(--color-slate-dark);
+      margin-bottom: var(--gap-xs);
+    }
+
+    .quote-card__text {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+      color: var(--color-slate-dark);
+    }
+
+    .quote-card__meta {
+      margin-top: var(--gap-sm);
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--color-cloud-dark);
+    }
+
+    .quote-card__meta strong {
+      color: var(--color-slate-dark);
+      font-weight: 500;
+    }
+
+    /* Tab Bar */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(250, 249, 245, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--color-slate-200);
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      padding-bottom: env(safe-area-inset-bottom, 12px);
+      padding-top: 8px;
+      z-index: 600;
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 50px;
+      padding-bottom: 4px;
+      background: none;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 0.625rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s var(--ease-out-quart);
+    }
+
+    .tab-btn.active { color: var(--color-slate-dark); }
+    .tab-btn:not(.active) { color: var(--color-cloud-medium); }
+
+    .tab-btn.create-btn {
+      position: static;
+    }
+
+    .create-circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid currentColor;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+
+    .create-circle span {
+      font-size: 14px;
+      font-weight: 500;
+      color: currentColor;
+      line-height: 1;
+    }
+
+    /* GPS Status */
+    .gps-status {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 500;
+    }
+
+    .gps-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(250, 249, 245, 0.9);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--color-slate-200);
+    }
+
+    .gps-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .gps-dot.active { background: var(--color-olive); box-shadow: 0 0 0 2px rgba(120, 140, 93, 0.3); }
+    .gps-dot.simulated { background: #c4a35a; box-shadow: 0 0 0 2px rgba(196, 163, 90, 0.3); }
+    .gps-dot.offline { background: var(--color-clay); box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.3); }
+
+    /* Map Controls */
+    .map-controls {
+      position: absolute;
+      bottom: 80px;
+      left: 12px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .map-control-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(250, 249, 245, 0.9);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--color-slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s var(--ease-out-quart);
+    }
+
+    .map-control-btn:hover { background: var(--color-slate-000); }
+
+    /* Layer Menu */
+    .layer-menu {
+      position: absolute;
+      top: 48px;
+      right: 12px;
+      z-index: 600;
+      background: var(--color-slate-000);
+      border: 1px solid var(--color-slate-200);
+      border-radius: 2px;
+      padding: 8px;
+      box-shadow: 0 4px 16px rgba(20, 20, 19, 0.1);
+      min-width: 140px;
+    }
+
+    .layer-menu button {
+      width: 100%;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: 2px;
+      border: none;
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--color-slate-light);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .layer-menu button:hover { background: var(--color-slate-100); }
+
+    /* Form Elements */
+    .input-field {
+      width: 100%;
+      background: var(--color-slate-000);
+      border: 1px solid var(--color-slate-200);
+      border-radius: 2px;
+      padding: 14px 16px;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      color: var(--color-slate-dark);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field::placeholder { color: var(--color-cloud-medium); }
+    .input-field:focus { border-color: var(--color-slate-350); }
+
+    .textarea-field {
+      width: 100%;
+      background: var(--color-slate-000);
+      border: 1px solid var(--color-slate-200);
+      border-radius: 2px;
+      padding: 16px;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--color-slate-dark);
+      line-height: 1.5;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    .textarea-field::placeholder { color: var(--color-cloud-medium); font-family: var(--font-serif); }
+    .textarea-field:focus { border-color: var(--color-slate-350); }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      background: var(--color-slate-dark);
+      color: var(--color-slate-000);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 16px;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    .btn-primary:hover { background: var(--color-slate-900); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-slate-light);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Mood Badge */
+    .mood-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 2px;
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    /* Reply Item */
+    .reply-item {
+      background: var(--color-slate-050);
+      border-radius: 2px;
+      padding: 12px;
+      border-left: 2px solid var(--color-slate-200);
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    /* —————— Tailwind Compatibility Utilities */
+    .flex { display: flex; }
+    .block { display: block; }
+    .hidden { display: none !important; }
+    .inline { display: inline; }
+    .flex-1 { flex: 1 1 0%; }
+    .flex-col { flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .items-end { align-items: flex-end; }
+    .items-baseline { align-items: baseline; }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-around { justify-content: space-around; }
+    .justify-start { justify-content: flex-start; }
+    .justify-end { justify-content: flex-end; }
+    .gap-1 { gap: 4px; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .w-full { width: 100%; }
+    .w-8 { width: 32px; }
+    .w-10 { width: 40px; }
+    .w-11 { width: 44px; }
+    .w-20 { width: 80px; }
+    .w-32 { width: 128px; }
+    .w-5 { width: 20px; }
+    .w-1\\.5 { width: 6px; }
+    .h-full { height: 100%; }
+    .h-8 { height: 32px; }
+    .h-10 { height: 40px; }
+    .h-11 { height: 44px; }
+    .h-20 { height: 80px; }
+    .h-32 { height: 128px; }
+    .h-5 { height: 20px; }
+    .h-1\\.5 { height: 6px; }
+    .px-3 { padding-left: 12px; padding-right: 12px; }
+    .px-4 { padding-left: 16px; padding-right: 16px; }
+    .px-5 { padding-left: 20px; padding-right: 20px; }
+    .px-6 { padding-left: 24px; padding-right: 24px; }
+    .px-8 { padding-left: 32px; padding-right: 32px; }
+    .py-1\\.5 { padding-top: 6px; padding-bottom: 6px; }
+    .py-3 { padding-top: 12px; padding-bottom: 12px; }
+    .py-8 { padding-top: 32px; padding-bottom: 32px; }
+    .pt-2 { padding-top: 8px; }
+    .pt-4 { padding-top: 16px; }
+    .pt-12 { padding-top: 48px; }
+    .pt-14 { padding-top: 56px; }
+    .pt-20 { padding-top: 80px; }
+    .pb-3 { padding-bottom: 12px; }
+    .pb-4 { padding-bottom: 16px; }
+    .pb-8 { padding-bottom: 32px; }
+    .pb-24 { padding-bottom: 96px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mb-8 { margin-bottom: 32px; }
+    .mb-10 { margin-bottom: 40px; }
+    .mb-12 { margin-bottom: 48px; }
+    .mb-auto { margin-bottom: auto; }
+    .mt-0\\.5 { margin-top: 2px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+    .mt-6 { margin-top: 24px; }
+    .mt-8 { margin-top: 32px; }
+    .mr-3 { margin-right: 12px; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .absolute { position: absolute; }
+    .relative { position: relative; }
+    .overflow-y-auto { overflow-y: auto; }
+    .rounded-full { border-radius: 9999px; }
+    .rounded-sm { border-radius: 2px; }
+    .text-center { text-align: center; }
+    .text-left { text-align: left; }
+    .text-right { text-align: right; }
+    .text-white { color: #fff; }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text\\[10px\\] { font-size: 10px; }
+    .font-bold { font-weight: 700; }
+    .font-medium { font-weight: 500; }
+    .border-2 { border-width: 2px; }
+    .border-slate-300 { border-color: var(--color-slate-300); }
+    .border-t-clay { border-top-color: var(--color-clay); }
+    .bg-ivory { background: var(--color-ivory-light); }
+    .z\\[500\\] { z-index: 500; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 1s linear infinite; }
+    .text-slate-light { color: var(--color-slate-light); }
+    .text-cloud-dark { color: var(--color-cloud-dark); }
+    .text-clay { color: var(--color-clay); }
+    .bg-ivory { background: var(--color-ivory-light); }    .left-0 { left: 0; }
+    .right-0 { right: 0; }
+    .top-0 { top: 0; }
+    .space-y-2 > * + * { margin-top: 8px; }
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-shadow { transition-property: box-shadow; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-colors { transition-property: color, background-color, border-color; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .hover\:shadow-sm:hover { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+    .hover\:scale-\[0\.98\]:hover { transform: scale(0.98); }
+    .active\:scale-95:active { transform: scale(0.95); }
+    .hover\:bg-slate-750:hover { background: var(--color-slate-750); }
+
+    /* ============ Drop Ritual (发布纸条) ============ */
+    .drop-ritual {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: linear-gradient(160deg, var(--color-ivory-light) 0%, var(--color-slate-100) 55%, var(--color-slate-150) 100%);
+    }
+    .drop-ritual--dark,
+    .drop-ritual--echo {
+      background: var(--color-slate-950);
+    }
+    .drop-ritual__cancel {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      z-index: 20;
+      padding: 8px 4px;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--color-cloud-dark);
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .drop-ritual__cancel:hover { color: var(--color-slate-dark); }
+    .drop-ritual__fade {
+      animation: dropFadeIn 0.45s var(--ease-out-quart);
+    }
+    @keyframes dropFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Step 1 — Emotion */
+    .emotion-picker { position: relative; height: 100%; }
+    .emotion-picker__prompt {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      margin: 0;
+      transform: translateX(-50%);
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--color-slate-light);
+      letter-spacing: 0.04em;
+      opacity: 0;
+      animation: emotionPromptIn 0.6s ease-out 0.3s forwards;
+    }
+    @keyframes emotionPromptIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+      to { opacity: 0.65; transform: translateX(-50%) translateY(0); }
+    }
+    .emotion-picker__words { position: absolute; inset: 0; }
+    .emotion-word {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-serif);
+      font-size: 1.375rem;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      opacity: 0;
+      animation: emotionWordIn 0.6s ease-out forwards, emotionFloat 5s ease-in-out infinite;
+      text-shadow: 0 0 18px currentColor;
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    @keyframes emotionWordIn {
+      from { opacity: 0; }
+      to { opacity: 0.75; }
+    }
+    @keyframes emotionFloat {
+      0%, 100% { margin-top: -4px; }
+      50% { margin-top: 4px; }
+    }
+    .emotion-word:hover { opacity: 1 !important; transform: translate(-50%, -50%) scale(1.08); }
+    .emotion-word.is-selected {
+      left: 50% !important;
+      top: 18% !important;
+      opacity: 1 !important;
+      transform: translate(-50%, 0) scale(0.73) !important;
+      animation: none;
+    }
+    .emotion-word.is-dismissed {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
+    /* Step 2 — Body Scan */
+    .body-scan { position: relative; height: 100%; }
+    .body-scan__figure {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: min(42vw, 240px);
+      height: 50vh;
+      transform: translate(-50%, -50%);
+    }
+    .body-scan__figure svg { width: 100%; height: 100%; overflow: visible; }
+    .body-scan__figure path {
+      fill: none;
+      stroke: var(--color-slate-300);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .body-scan__labels { position: absolute; inset: 0; }
+    .body-scan__label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border: 1px solid var(--color-slate-200);
+      border-radius: 2px;
+      padding: 6px 14px;
+      background: rgba(250, 249, 245, 0.85);
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+      animation: bodyLabelIn 0.5s ease-out backwards, bodyLabelFloat 4.8s ease-in-out infinite;
+    }
+    @keyframes bodyLabelIn {
+      from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    @keyframes bodyLabelFloat {
+      0%, 100% { margin-top: 0; }
+      50% { margin-top: -2px; }
+    }
+    .body-scan__label:hover { background: var(--color-slate-100); }
+    .body-scan__label--active { font-weight: 500; }
+    .body-scan__custom {
+      position: absolute;
+      left: 50%;
+      bottom: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      transform: translateX(-50%);
+      width: min(88vw, 360px);
+    }
+    .body-scan__custom-trigger {
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--color-cloud-dark);
+      opacity: 0.55;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .body-scan__custom-trigger:hover { opacity: 0.85; }
+    .body-scan__custom-input {
+      width: 100%;
+      border-bottom: 1px solid var(--color-slate-250);
+      padding: 8px 0;
+      text-align: center;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      color: var(--color-slate-dark);
+      background: transparent;
+      outline: none;
+    }
+    .body-scan__continue {
+      font-family: var(--font-serif);
+      font-size: 0.9375rem;
+      color: var(--color-slate-light);
+      opacity: 0.65;
+      background: none;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+    }
+    .body-scan__continue:hover { opacity: 1; color: var(--color-slate-dark); }
+
+    /* Step 3 — Writing */
+    .writing-canvas {
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px 32px;
+    }
+    .writing-canvas__status {
+      margin: 0 0 20px;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      opacity: 0.55;
+      text-align: center;
+    }
+    .writing-canvas__paper-wrap {
+      position: relative;
+      width: min(100%, 400px);
+      perspective: 800px;
+      transform-style: preserve-3d;
+      transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    }
+    .writing-canvas__paper-wrap.is-falling {
+      transform: scale(0.3) translateY(200px);
+      opacity: 0;
+    }
+    .paper-note-drop {
+      position: relative;
+      width: 100%;
+      filter: drop-shadow(0 2px 8px rgba(20, 20, 19, 0.12));
+    }
+    .paper-note-drop__surface {
+      position: relative;
+      min-height: 280px;
+      padding: 28px;
+      background-color: var(--color-slate-050);
+      background-image: radial-gradient(circle at 18% 22%, var(--emotion-glow, transparent), transparent 28%);
+      clip-path: var(--clip-path);
+      overflow: hidden;
+    }
+    .paper-note-drop__surface::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(20, 20, 19, 0.015) 3px,
+        rgba(20, 20, 19, 0.015) 4px
+      );
+      pointer-events: none;
+    }
+    .paper-note-drop__surface::after {
+      content: "";
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      width: 1px;
+      height: 140%;
+      background: rgba(20, 20, 19, 0.05);
+      transform: rotate(-34deg);
+      pointer-events: none;
+    }
+    .paper-note-drop__textarea {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      min-height: 240px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      resize: none;
+      background: transparent;
+      outline: none;
+      font-family: var(--font-serif);
+      font-size: 1.0625rem;
+      line-height: 1.85;
+      letter-spacing: 0.01em;
+      color: var(--color-slate-dark);
+      caret-color: var(--color-clay);
+    }
+    .paper-note-drop__textarea::placeholder { color: var(--color-cloud-medium); }
+    .writing-canvas__fold {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      transform-style: preserve-3d;
+    }
+    .writing-canvas__fold-half {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: linear-gradient(135deg, var(--color-slate-050), var(--color-oat));
+      clip-path: var(--clip-path);
+      opacity: 0.96;
+      backface-visibility: hidden;
+      filter: drop-shadow(0 2px 6px rgba(20, 20, 19, 0.15));
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .writing-canvas__fold-half--top {
+      top: 0;
+      transform-origin: bottom center;
+    }
+    .writing-canvas__fold-half--bottom {
+      bottom: 0;
+      transform-origin: top center;
+    }
+    .writing-canvas__fold.is-active .writing-canvas__fold-half--top {
+      transform: rotateX(-84deg);
+    }
+    .writing-canvas__fold.is-active .writing-canvas__fold-half--bottom {
+      transform: rotateX(84deg);
+    }
+    .writing-canvas__drop {
+      margin-top: 28px;
+      font-family: var(--font-serif);
+      font-size: 1.0625rem;
+      letter-spacing: 0.35em;
+      color: var(--color-slate-light);
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.65;
+      transition: opacity 0.2s;
+      position: relative;
+    }
+    .writing-canvas__drop:hover { opacity: 1; color: var(--color-slate-dark); }
+    .writing-canvas__drop::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 56px;
+      height: 1px;
+      background: var(--color-slate-250);
+      transform: translateX(-50%);
+    }
+    .writing-canvas__drop.is-hidden { opacity: 0; pointer-events: none; }
+    .writing-canvas__echo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin: 0;
+      padding: 0 20px;
+      max-width: 90%;
+      text-align: center;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      color: var(--color-slate-200);
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      animation: echoIn 0.8s ease-out forwards;
+    }
+    @keyframes echoIn {
+      from { opacity: 0; }
+      to { opacity: 0.75; }
+    }
+  
+  </style>
+</head>
+<body>
+  <div id="root" class="app-frame"></div>
+
+<script>
+
+// ============ STATE ============
+const state = {
+  screen: 'welcome',
+  tab: 'explore',
+  notes: null,
+  currentNote: null,
+  replies: [],
+  profile: null,
+  location: { lat: 31.2304, lng: 121.4737, accuracy: 10 },
+  locationMode: 'simulated',
+  markers: [],
+  watchId: null,
+  geoWatchId: null,
+  filters: {},
+  globe: null,
+  localMapZoom: 15,
+  profileStats: null,
+  profileView: 'main',
+  myNotes: null,
+  readHistory: null,
+};
+
+const MOODS = {
+  happy:   { label: '开心',  color: '#788c5d', cssVar: 'var(--mood-happy)' },
+  sad:     { label: '难过',  color: '#6a9bcc', cssVar: 'var(--mood-sad)' },
+  angry:   { label: '愤怒',  color: '#d97757', cssVar: 'var(--mood-angry)' },
+  anxious: { label: '焦虑',  color: '#c4a35a', cssVar: 'var(--mood-anxious)' },
+  love:    { label: '告白',  color: '#c46686', cssVar: 'var(--mood-love)' },
+  thought: { label: '感悟',  color: '#8b7fb8', cssVar: 'var(--mood-thought)' },
+  rant:    { label: '吐槽',  color: '#6a8a9e', cssVar: 'var(--mood-rant)' },
+};
+
+const EMOTIONS = [
+  { id: 'sadness', label: '悲伤', moodTag: 'sad', color: '#6a9bcc', glowColor: 'rgba(106, 155, 204, 0.28)',
+    bodySuggestions: ['眼眶发酸', '胸口闷闷的', '喉咙像堵着什么', '肩膀很沉', '想蜷起来', '呼吸变浅了'] },
+  { id: 'anxiety', label: '焦虑', moodTag: 'anxious', color: '#c4a35a', glowColor: 'rgba(196, 163, 90, 0.28)',
+    bodySuggestions: ['心跳加速', '手心出汗', '胃在翻搅', '肌肉紧绷', '坐立不安', '呼吸急促'] },
+  { id: 'loss', label: '失落', moodTag: 'sad', color: '#87867f', glowColor: 'rgba(135, 134, 127, 0.28)',
+    bodySuggestions: ['身体发空', '四肢发软', '像漂浮着', '没有着力点', '胸口凉凉的'] },
+  { id: 'joy', label: '开心', moodTag: 'happy', color: '#788c5d', glowColor: 'rgba(120, 140, 93, 0.28)',
+    bodySuggestions: ['嘴角上扬', '胸口暖暖的', '身体轻盈', '想要深呼吸', '指尖发麻'] },
+  { id: 'anger', label: '愤怒', moodTag: 'angry', color: '#d97757', glowColor: 'rgba(217, 119, 87, 0.28)',
+    bodySuggestions: ['太阳穴胀痛', '下巴咬紧', '拳头握紧', '胸口发烫', '呼吸粗重', '肌肉发硬'] },
+  { id: 'calm', label: '平静', moodTag: 'thought', color: '#8b7fb8', glowColor: 'rgba(139, 127, 184, 0.28)',
+    bodySuggestions: ['呼吸很慢', '肩膀松了', '手心温热', '身体很沉但不重', '像泡在温水里'] },
+];
+const EMOTION_BY_ID = Object.fromEntries(EMOTIONS.map(e => [e.id, e]));
+const EMOTION_POSITIONS = {
+  joy: { left: '32%', top: '36%' }, loss: { left: '66%', top: '48%' },
+  sadness: { left: '48%', top: '61%' }, anxiety: { left: '66%', top: '33%' },
+  anger: { left: '34%', top: '66%' }, calm: { left: '63%', top: '68%' },
+};
+const EMOTION_SCATTER = {
+  joy: { x: -54, y: -42 }, loss: { x: 62, y: 12 }, sadness: { x: -12, y: 58 },
+  anxiety: { x: 48, y: -48 }, anger: { x: -58, y: 44 }, calm: { x: 52, y: 50 },
+};
+const BODY_LABEL_POSITIONS = [
+  { left: '31%', top: '26%' }, { left: '66%', top: '33%' }, { left: '28%', top: '43%' },
+  { left: '67%', top: '50%' }, { left: '34%', top: '61%' }, { left: '63%', top: '66%' },
+  { left: '43%', top: '76%' }, { left: '57%', top: '78%' },
+];
+
+const GRADIENTS = [
+  ['#788c5d','#5a6b44'],['#6a9bcc','#4a7aab'],['#d97757','#a85a3f'],
+  ['#c4a35a','#9a7f45'],['#c46686','#9a4a68'],['#8b7fb8','#6b5f98'],
+  ['#6a8a9e','#4a6a7e'],['#87867f','#5e5d59'],
+];
+
+// ============ API ============
+const API = (() => {
+  if (location.origin && location.origin !== 'null' && /^https?:$/.test(location.protocol)) {
+    return location.origin;
+  }
+  return 'http://127.0.0.1:3000';
+})();
+
+const TILE_BASE = API + '/tiles/osm';
+async function apiPost(path, body) {
+  const r = await fetch(API + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error||e.message||'Error'); }
+  return r.json();
+}
+
+async function apiPostWithTimeout(path, body, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(API + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.error || e.message || 'Error');
+    }
+    return r.json();
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('发布请求超时，请检查网络后重试');
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ============ UTILS ============
+function fmtDist(m) { return m < 10 ? '近处' : m < 1000 ? Math.round(m)+'米' : (m/1000).toFixed(1)+'公里'; }
+function getDistanceState(distance) {
+  if (distance <= 10) return 'unlocked';
+  if (distance <= 50) return 'near';
+  if (distance <= 200) return 'approach';
+  return 'far';
+}
+
+function getRevealStage(distance) {
+  if (distance <= 10) return 'full';
+  if (distance <= 50) return 'clear-blur';
+  if (distance <= 200) return 'partial-blur';
+  return 'hidden';
+}
+
+function getRevealCopy(note) {
+  const stage = getRevealStage(note.distance);
+  const fullText = note.content || '';
+  const previewText = note.contentPreview || fullText.slice(0, 30);
+
+  if (stage === 'full') {
+    return {
+      text: fullText,
+      label: '已解锁',
+      blur: 'none',
+      opacity: '1',
+      lineClamp: 'none',
+      suffix: '',
+    };
+  }
+
+  if (stage === 'clear-blur') {
+    return {
+      text: fullText,
+      label: '靠近中，内容逐渐清晰',
+      blur: 'blur(1.1px)',
+      opacity: '0.92',
+      lineClamp: '2',
+      suffix: '',
+    };
+  }
+
+  return {
+    text: previewText,
+    label: '再靠近一点才能看清',
+    blur: 'blur(2.4px)',
+    opacity: '0.78',
+    lineClamp: '2',
+    suffix: '…',
+  };
+}
+
+function getDistanceLabel(state, distance) {
+  switch (state) {
+    case 'unlocked':
+      return '已解锁';
+    case 'near':
+      return `已经很近了！再走 ${Math.round(distance)} 米`;
+    case 'approach':
+      return `还需走近 ${Math.round(Math.max(0, distance - 50))} 米`;
+    case 'far':
+      return `前方 ${Math.round(distance)} 米有纸条`;
+    default:
+      return '';
+  }
+}
+function sortNotesNewestFirst(notes) {
+  return [...notes].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+}
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '刚刚';
+  const n = new Date(), diff = Math.floor((n-d)/1000);
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff/60)+'分钟前';
+  if (diff < 86400) return Math.floor(diff/3600)+'小时前';
+  return Math.floor(diff/86400)+'天前';
+}
+function genCode() {
+  const adj = ['孤独的','深夜的','湖边的','街角的','雨后的','午后的','迷路的','等待的','沉默的','流浪的'];
+  const noun = ['美食家','失眠者','守望者','旅行者','梦想家','路人甲','咖啡师','读者','写作者','听风者'];
+  return adj[Math.floor(Math.random()*adj.length)] + noun[Math.floor(Math.random()*noun.length)] + '_' + Math.floor(Math.random()*10000).toString().padStart(4,'0');
+}
+function distBetween(lat1,lng1,lat2,lng2) {
+  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ============ REAL LOCATION ============
+function formatCoordLabel(lat, lng) {
+  return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+}
+
+const GAODE_KEY = '6404e465242f02ca0d7a140a54bcef3b';
+let reverseGeoTimeout = null;
+function reverseGeocode() {
+  if (!GAODE_KEY || reverseGeoTimeout) return;
+  reverseGeoTimeout = setTimeout(() => { reverseGeoTimeout = null; }, 5000);
+  const { lat, lng } = state.location;
+  fetch(`${API}/api/geocode?lat=${lat}&lng=${lng}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === '1' && data.regeocode) {
+        const addr = data.regeocode.formatted_address;
+        const parts = addr.split(/[省市县区镇]/);
+        const short = parts.filter(p => p.trim()).pop() || addr;
+        state.currentAddress = short.substring(0, 12);
+        updateGpsStatusUI();
+      }
+    })
+    .catch(() => {});
+}
+
+function initRealLocation() {
+  if (!navigator.geolocation) {
+    state.locationMode = 'simulated';
+    state.currentAddress = formatCoordLabel(state.location.lat, state.location.lng);
+    updateGpsStatusUI();
+    if (state.screen === 'app') {
+      loadNearbyNotes();
+    }
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      state.location.lat = pos.coords.latitude;
+      state.location.lng = pos.coords.longitude;
+      state.location.accuracy = pos.coords.accuracy || 10;
+      state.locationMode = 'real';
+      state.currentAddress = formatCoordLabel(state.location.lat, state.location.lng);
+      reverseGeocode();
+      updateGpsStatusUI();
+      if (state.globe) {
+        updateGlobeRotation();
+        loadNearbyNotes();
+      }
+    },
+    (err) => {
+      console.warn('GPS error:', err.message);
+      state.locationMode = 'simulated';
+      state.currentAddress = formatCoordLabel(state.location.lat, state.location.lng);
+      updateGpsStatusUI();
+      if (state.screen === 'app') {
+        loadNearbyNotes();
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+  );
+
+  state.geoWatchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      state.location.lat = pos.coords.latitude;
+      state.location.lng = pos.coords.longitude;
+      state.location.accuracy = pos.coords.accuracy || 10;
+      state.locationMode = 'real';
+      state.currentAddress = formatCoordLabel(state.location.lat, state.location.lng);
+      reverseGeocode();
+      updateNoteDistances();
+      updateGpsStatusUI();
+    },
+    () => {},
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+  );
+}
+
+function updateGpsStatusUI() {
+  const el = document.getElementById('gpsStatus');
+  if (!el) return;
+  const mode = state.locationMode;
+  const labels = { real: ['实时定位', 'active'], simulated: ['模拟位置', 'simulated'] };
+  const [text, cls] = labels[mode] || labels.simulated;
+  const address = state.currentAddress ? ` · ${state.currentAddress}` : '';
+  el.innerHTML = `<div class="gps-badge"><div class="gps-dot ${cls}"></div><span class="detail-s" style="color:var(--color-slate-light)">${text}${address}</span></div>`;
+}
+
+// ============ RENDER ============
+const root = document.getElementById('root');
+function render() {
+  if (!state.profile && state.screen !== 'welcome' && state.screen !== 'identity') { state.screen = 'welcome'; }
+  switch(state.screen) {
+    case 'welcome': renderWelcome(); break;
+    case 'identity': renderIdentity(); break;
+    case 'app': renderApp(); break;
+    case 'detail': renderDetail(); break;
+    case 'create': renderCreate(); break;
+  }
+  initReveals();
+}
+
+function initReveals() {
+  const reveals = document.querySelectorAll('.reveal');
+  if (!reveals.length) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  reveals.forEach(el => observer.observe(el));
+}
+
+function renderWelcome() {
+  root.innerHTML = `
+    <div class="screen bg-ivory flex flex-col justify-center items-center px-8">
+      <div class="w-32 h-32 rounded-full mb-10 flex items-center justify-center" style="background:var(--color-slate-100);border:1px solid var(--color-slate-200)">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-clay)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <p class="headline-2 text-center mb-2" style="color:var(--color-clay);font-family:var(--font-sans);font-size:1.125rem;font-weight:600;letter-spacing:0.12em">DeadDrop</p>
+      <h1 class="display-serif-xl text-center mb-4" style="color:var(--color-slate-dark)">发现身边的秘密</h1>
+      <p class="paragraph-m text-center mb-12" style="color:var(--color-slate-light);max-width:280px">每一条街道、每一个角落，都藏着陌生人的故事。走近，才能听见。</p>
+      <button onclick="goIdentity()" class="btn-primary" style="max-width:280px">开始探索</button>
+      <p class="detail-s mt-6" style="color:var(--color-cloud-medium)">完全匿名 · 无需注册 · 位置仅用于附近查询</p>
+    </div>`;
+}
+
+let tempCode = genCode(), tempGradient = 0, tempNickname = '';
+function goIdentity() { state.screen = 'identity'; render(); }
+function renderIdentity() {
+  root.innerHTML = `
+    <div class="screen bg-ivory px-6 pt-20 pb-8">
+      <h2 class="headline-2 mb-2" style="color:var(--color-slate-dark)">创建你的匿名身份</h2>
+      <p class="paragraph-m mb-8" style="color:var(--color-slate-light)">这只是你在 DeadDrop 的代号</p>
+      <div class="quote-card mb-4 text-center" style="border:1px solid var(--color-slate-200)">
+        <p class="mono-label" style="color:var(--color-slate-dark);font-size:1.125rem" id="codeDisplay">${tempCode}</p>
+      </div>
+      <button onclick="refreshCode()" class="btn-secondary mb-8 mx-auto block" style="color:var(--color-clay)">换一个</button>
+      <p class="detail-s font-medium mb-2" style="color:var(--color-cloud-dark)">自定义昵称（可选）</p>
+      <input id="nickInput" value="${tempNickname}" oninput="tempNickname=this.value" placeholder="给自己起个名字" class="input-field mb-8">
+      <p class="detail-s font-medium mb-3" style="color:var(--color-cloud-dark)">头像颜色</p>
+      <div class="flex gap-3 flex-wrap mb-auto">
+        ${GRADIENTS.map((g,i)=>`<button onclick="pickGradient(${i})" class="w-10 h-10 rounded-full border-2 transition-all" style="background:linear-gradient(135deg,${g[0]},${g[1]});border-color:${i===tempGradient?'var(--color-slate-dark)':'transparent'}"></button>`).join('')}
+      </div>
+      <button onclick="confirmIdentity()" class="btn-primary mt-8" style="max-width:100%">继续</button>
+    </div>`;
+}
+function refreshCode() { tempCode = genCode(); const el = document.getElementById('codeDisplay'); if (el) el.textContent = tempCode; }
+function pickGradient(i) { tempGradient = i; renderIdentity(); }
+function confirmIdentity() {
+  state.profile = { anonymousCode: tempCode, nickname: tempNickname || null, avatarGradient: tempGradient };
+  state.screen = 'app';
+  render();
+  setTimeout(() => { initGlobe(); initRealLocation(); updateGpsStatusUI(); }, 100);
+}
+
+
+// ============ LOCAL MAP (Real-location Window) ============
+let globeProjection = null, globeSvg = null, globeGroup = null;
+let globeDots = [], globeDotSel = null, globeClusterSel = null;
+
+const DEFAULT_LOCAL_MAP_ZOOM = 15;
+
+function computeAdaptiveMapZoom() {
+  if (!state.notes) return DEFAULT_LOCAL_MAP_ZOOM;
+  const allDistances = [
+    ...(state.notes.unlocked || []).map(n => Number(n.distance)),
+    ...(state.notes.preview || []).map(n => Number(n.distance)),
+    ...(state.notes.distant || []).map(n => Number(n.centerDistance))
+  ].filter(Number.isFinite);
+
+  if (!allDistances.length) return DEFAULT_LOCAL_MAP_ZOOM;
+  const nearest = Math.min(...allDistances);
+  if (nearest <= 300) return 16;
+  if (nearest <= 1200) return 15;
+  if (nearest <= 3000) return 14;
+  return 13;
+}
+
+function lonLatToWorldPx(lng, lat, zoom) {
+  const latClamped = Math.max(-85.05112878, Math.min(85.05112878, lat));
+  const scale = 256 * Math.pow(2, zoom);
+  const x = ((lng + 180) / 360) * scale;
+  const sin = Math.sin((latClamped * Math.PI) / 180);
+  const y = (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale;
+  return { x, y };
+}
+
+function worldPxToLonLat(x, y, zoom) {
+  const scale = 256 * Math.pow(2, zoom);
+  const lon = (x / scale) * 360 - 180;
+  const n = Math.PI - (2 * Math.PI * y) / scale;
+  const lat = (180 / Math.PI) * Math.atan(Math.sinh(n));
+  return { lon, lat };
+}
+
+function buildLocalProjection(width, height, center, zoom) {
+  const centerWorld = lonLatToWorldPx(center.lng, center.lat, zoom);
+  const project = ([lng, lat]) => {
+    const world = lonLatToWorldPx(lng, lat, zoom);
+    return [world.x - centerWorld.x + width / 2, world.y - centerWorld.y + height / 2];
+  };
+  project.center = center;
+  project.width = width;
+  project.height = height;
+  project.zoom = zoom;
+  project.centerWorld = centerWorld;
+  return project;
+}
+
+function getGlobeSize(containerNode) {
+  const rect = containerNode ? containerNode.getBoundingClientRect() : { width: 0, height: 0 };
+  const width = Math.max(280, Math.round(rect.width || 0) || 430);
+  const height = Math.max(220, Math.round(rect.height || 0) || 350);
+  return { width, height };
+}
+
+function syncProjectionViewport() {
+  const containerNode = d3.select('#globe-viz').node();
+  if (!containerNode || !globeProjection || !globeSvg) return;
+  const { width, height } = getGlobeSize(containerNode);
+  if (width === globeProjection.width && height === globeProjection.height) return;
+  globeProjection = buildLocalProjection(width, height, globeProjection.center, globeProjection.zoom || state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM);
+  globeProjection.center = globeProjection.center || { lat: state.location.lat, lng: state.location.lng };
+  globeProjection.width = width;
+  globeProjection.height = height;
+  globeSvg.attr('viewBox', `0 0 ${width} ${height}`);
+}
+
+function pseudoRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function drawTileLayer() {
+  if (!globeGroup || !globeProjection) return;
+  globeGroup.select('g.tile-layer').remove();
+
+  const tileLayer = globeGroup.append('g').attr('class', 'tile-layer');
+  const z = globeProjection.zoom;
+  const n = Math.pow(2, z);
+  const tileSize = 256;
+  const topLeftWorldX = globeProjection.centerWorld.x - globeProjection.width / 2;
+  const topLeftWorldY = globeProjection.centerWorld.y - globeProjection.height / 2;
+
+  const minTileX = Math.floor(topLeftWorldX / tileSize);
+  const maxTileX = Math.floor((topLeftWorldX + globeProjection.width) / tileSize);
+  const minTileY = Math.floor(topLeftWorldY / tileSize);
+  const maxTileY = Math.floor((topLeftWorldY + globeProjection.height) / tileSize);
+
+  for (let tx = minTileX; tx <= maxTileX; tx++) {
+    for (let ty = minTileY; ty <= maxTileY; ty++) {
+      if (ty < 0 || ty >= n) continue;
+      const px = tx * tileSize - topLeftWorldX;
+      const py = ty * tileSize - topLeftWorldY;
+
+      tileLayer.append('image')
+        .attr('href', `${TILE_BASE}/${z}/${tx}/${ty}.png`)
+        .attr('xlink:href', `${TILE_BASE}/${z}/${tx}/${ty}.png`)
+        .attr('x', px)
+        .attr('y', py)
+        .attr('width', tileSize)
+        .attr('height', tileSize);
+    }
+  }
+
+  // ─── 地图外框：和 globe.js 地球仪外框同款风格 ───
+  globeGroup.selectAll('rect.map-border').remove();
+  globeGroup.append('rect')
+    .attr('class', 'map-border')
+    .attr('x', 0.5)
+    .attr('y', 0.5)
+    .attr('width', globeProjection.width - 1)
+    .attr('height', globeProjection.height - 1)
+    .attr('fill', 'none')
+    .attr('stroke', '#d1cfc5')
+    .attr('stroke-width', 1);
+}
+
+function drawCenterMarker() {
+  if (!globeSvg || !globeProjection) return;
+  globeSvg.select('g.user-center').remove();
+  const g = globeSvg.append('g').attr('class', 'user-center');
+  const cx = globeProjection.width / 2;
+  const cy = globeProjection.height / 2;
+  const accuracyRadius = Math.max(18, Math.min(72, (state.location.accuracy || 20) / 2));
+
+  g.append('circle')
+    .attr('cx', cx).attr('cy', cy)
+    .attr('r', accuracyRadius)
+    .attr('fill', 'none')
+    .attr('stroke', '#d9775738')
+    .attr('stroke-width', 1.2);
+
+  g.append('circle')
+    .attr('cx', cx).attr('cy', cy)
+    .attr('r', 5)
+    .attr('fill', '#d97757')
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 2);
+}
+
+async function initGlobe() {
+  const container = d3.select('#globe-viz');
+  if (container.empty()) { setTimeout(initGlobe, 200); return; }
+  const containerNode = container.node();
+  const { width, height } = getGlobeSize(containerNode);
+  const center = { lat: state.location.lat || 31.2304, lng: state.location.lng || 121.4737 };
+
+  container.html('');
+  globeSvg = container.append('svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('width', '100%')
+    .style('height', '100%')
+    .style('display', 'block');
+
+  // Enable basic pan (drag) and zoom (wheel) interactions on the SVG.
+  (function enablePanZoom() {
+    let isPanning = false;
+    let start = null;
+
+    globeSvg.style('cursor', 'grab');
+
+    globeSvg.on('mousedown', (event) => {
+      isPanning = true;
+      start = { x: event.clientX, y: event.clientY };
+      globeSvg.style('cursor', 'grabbing');
+      event.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (ev) => {
+      if (!isPanning || !globeProjection) return;
+      const dx = ev.clientX - start.x;
+      const dy = ev.clientY - start.y;
+      start = { x: ev.clientX, y: ev.clientY };
+
+      // Translate centerWorld by pixel delta
+      globeProjection.centerWorld.x -= dx;
+      globeProjection.centerWorld.y -= dy;
+
+      // compute new center lat/lon from updated centerWorld
+      const c = worldPxToLonLat(globeProjection.centerWorld.x, globeProjection.centerWorld.y, globeProjection.zoom);
+      globeProjection.center = { lat: c.lat, lng: c.lon };
+      updateGlobePaths();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isPanning) return;
+      isPanning = false;
+      globeSvg.style('cursor', 'grab');
+    });
+
+    // Wheel to zoom in/out (integer zoom levels)
+    globeSvg.node().addEventListener('wheel', (ev) => {
+      if (!globeProjection) return;
+      ev.preventDefault();
+      const delta = Math.sign(ev.deltaY);
+      const oldZoom = globeProjection.zoom || state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM;
+      let newZoom = oldZoom - delta; // wheel down -> zoom out (increase deltaY), we invert
+      newZoom = Math.max(1, Math.min(18, Math.round(newZoom)));
+      if (newZoom === oldZoom) return;
+
+      // Keep center lat/lng the same, but rebuild projection at new zoom
+      const centerLatLng = globeProjection.center || { lat: state.location.lat, lng: state.location.lng };
+      globeProjection = buildLocalProjection(globeProjection.width, globeProjection.height, centerLatLng, newZoom);
+      globeProjection.center = centerLatLng;
+      updateGlobePaths();
+    }, { passive: false });
+  })();
+
+  globeProjection = buildLocalProjection(width, height, center, state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM);
+  globeProjection.center = center;
+  globeProjection.width = width;
+  globeProjection.height = height;
+
+  globeGroup = globeSvg.append('g');
+  state.globe = globeSvg;
+  drawTileLayer();
+  initGlobeDots();
+  drawCenterMarker();
+  setTimeout(centerToNearestDotIfInvisible, 0);
+}
+
+function initGlobeDots() {
+  if (!state.notes || !globeGroup) return;
+  const all = [...(state.notes.unlocked || []), ...(state.notes.preview || [])];
+  const distant = state.notes.distant || [];
+
+  globeDots = all.map(note => {
+    const mood = MOODS[note.moodTag];
+    return {
+      type: 'note',
+      lon: Number(note.lng),
+      lat: Number(note.lat),
+      color: mood ? mood.color : '#788c5d',
+      noteId: note.id,
+      distance: Number(note.distance)
+    };
+  }).concat(
+    distant.map(d => ({
+      type: 'cluster',
+      lon: Number(d.lng),
+      lat: Number(d.lat),
+      count: Number(d.count),
+      distance: Number(d.centerDistance),
+      color: '#8f8a7e'
+    }))
+  );
+
+  globeGroup.select('g.dots').remove();
+  const dotGroup = globeGroup.append('g').attr('class', 'dots');
+
+  globeDotSel = dotGroup.selectAll('circle')
+    .data(globeDots)
+    .join('circle')
+    .attr('r', d => d.type === 'cluster' ? 8 : (d.distance <= 50 ? 3.2 : 2.1))
+    .attr('fill', d => d.type === 'cluster' ? '#faf9f5' : d.color)
+    .attr('opacity', 0.9)
+    .attr('stroke', d => d.type === 'cluster' ? '#8f8a7e' : '#fff')
+    .attr('stroke-width', d => d.type === 'cluster' ? 1.4 : 0.8)
+    .style('cursor', 'pointer')
+    .on('click', (event, d) => {
+      event.stopPropagation();
+      if (d.type === 'note' && d.noteId) openNote(d.noteId);
+      if (d.type === 'cluster') centerOnPoint(d.lat, d.lon);
+    });
+
+  globeClusterSel = dotGroup.selectAll('text.cluster-label')
+    .data(globeDots.filter(d => d.type === 'cluster'))
+    .join('text')
+    .attr('class', 'cluster-label')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'central')
+    .attr('font-size', 9)
+    .attr('font-family', 'var(--font-sans)')
+    .attr('font-weight', 600)
+    .attr('fill', '#8f8a7e')
+    .style('pointer-events', 'none')
+    .text(d => d.count > 9 ? '9+' : String(d.count || 0));
+
+  renderGlobeDots();
+  centerToNearestDotIfInvisible();
+}
+
+function renderGlobeDots() {
+  if (!globeDotSel || !globeProjection) return;
+  syncProjectionViewport();
+  globeDotSel
+    .attr('cx', d => globeProjection([d.lon, d.lat])[0])
+    .attr('cy', d => globeProjection([d.lon, d.lat])[1])
+    .attr('opacity', d => {
+      const p = globeProjection([d.lon, d.lat]);
+      const inside = p[0] >= 0 && p[0] <= globeProjection.width && p[1] >= 0 && p[1] <= globeProjection.height;
+      return inside ? 0.9 : 0;
+    })
+    .style('pointer-events', d => {
+      const p = globeProjection([d.lon, d.lat]);
+      const inside = p[0] >= 0 && p[0] <= globeProjection.width && p[1] >= 0 && p[1] <= globeProjection.height;
+      return inside ? 'auto' : 'none';
+    });
+
+  if (globeClusterSel) {
+    globeClusterSel
+      .attr('x', d => globeProjection([d.lon, d.lat])[0])
+      .attr('y', d => globeProjection([d.lon, d.lat])[1])
+      .attr('opacity', d => {
+        const p = globeProjection([d.lon, d.lat]);
+        const inside = p[0] >= 0 && p[0] <= globeProjection.width && p[1] >= 0 && p[1] <= globeProjection.height;
+        return inside ? 1 : 0;
+      });
+  }
+}
+
+function getVisibleDotCount() {
+  if (!globeProjection || !globeDots || !globeDots.length) return 0;
+  return globeDots.filter(d => {
+    const p = globeProjection([d.lon, d.lat]);
+    return p[0] >= 0 && p[0] <= globeProjection.width && p[1] >= 0 && p[1] <= globeProjection.height;
+  }).length;
+}
+
+function centerToNearestDotIfInvisible() {
+  if (!globeProjection || !globeDots || !globeDots.length) return;
+  if (getVisibleDotCount() > 0) return;
+
+  const nearest = globeDots
+    .filter(d => Number.isFinite(Number(d.lat)) && Number.isFinite(Number(d.lon)))
+    .sort((a, b) => {
+      const da = distBetween(state.location.lat, state.location.lng, Number(a.lat), Number(a.lon));
+      const db = distBetween(state.location.lat, state.location.lng, Number(b.lat), Number(b.lon));
+      return da - db;
+    })[0];
+
+  if (!nearest) return;
+
+  globeProjection = buildLocalProjection(
+    globeProjection.width,
+    globeProjection.height,
+    { lat: nearest.lat, lng: nearest.lon },
+    globeProjection.zoom || state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM
+  );
+  globeProjection.center = { lat: nearest.lat, lng: nearest.lon };
+  updateGlobePaths();
+}
+
+function updateGlobePaths() {
+  syncProjectionViewport();
+  drawTileLayer();
+  renderGlobeDots();
+  drawCenterMarker();
+}
+
+function updateGlobeRotation() {
+  if (!globeProjection || !globeSvg) return;
+  globeSvg.interrupt();
+  const start = globeProjection.center || { lat: state.location.lat, lng: state.location.lng };
+  const target = { lat: state.location.lat || 31.2304, lng: state.location.lng || 121.4737 };
+
+  d3.transition()
+    .duration(650)
+    .ease(d3.easeCubicOut)
+    .tween('local-map-center', () => {
+      const iLat = d3.interpolateNumber(start.lat, target.lat);
+      const iLng = d3.interpolateNumber(start.lng, target.lng);
+      return t => {
+        const c = { lat: iLat(t), lng: iLng(t) };
+        globeProjection = buildLocalProjection(globeProjection.width, globeProjection.height, c, globeProjection.zoom || state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM);
+        globeProjection.center = c;
+        syncProjectionViewport();
+        updateGlobePaths();
+      };
+    });
+}
+
+function centerOnPoint(lat, lng) {
+  if (!globeProjection || !globeSvg) return;
+    const parsedLat = Number(lat);
+    const parsedLng = Number(lng);
+    if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return;
+    globeSvg.interrupt();
+  const start = globeProjection.center || { lat: state.location.lat, lng: state.location.lng };
+    const target = { lat: parsedLat, lng: parsedLng };
+
+  d3.transition()
+    .duration(650)
+    .ease(d3.easeCubicOut)
+    .tween('local-map-center-point', () => {
+      const iLat = d3.interpolateNumber(start.lat, target.lat);
+      const iLng = d3.interpolateNumber(start.lng, target.lng);
+      return t => {
+        const c = { lat: iLat(t), lng: iLng(t) };
+        globeProjection = buildLocalProjection(globeProjection.width, globeProjection.height, c, globeProjection.zoom || state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM);
+        globeProjection.center = c;
+        syncProjectionViewport();
+        updateGlobePaths();
+      };
+    });
+}
+
+function centerOnUser() {
+  updateGlobeRotation();
+}
+
+// ============ APP SHELL ============
+function renderApp() {
+  if (state.tab === 'explore') {
+    renderExploreTab();
+  } else if (state.tab === 'list') {
+    root.innerHTML = `<div class="screen pb-24" style="background:var(--color-ivory-light);min-height:100%">${renderListContent()}</div>${renderTabBar()}`;
+  } else {
+    root.innerHTML = `<div class="screen pb-24" style="background:var(--color-ivory-light);min-height:100%;overflow-y:auto">${getTabContent()}</div>${renderTabBar()}`;
+  }
+  if (state.tab === 'explore') {
+    setTimeout(() => {
+      initGlobe();
+      updateGpsStatusUI();
+      if (!state.notes) loadNearbyNotes();
+    }, 50);
+  } else if (state.tab === 'profile') {
+    loadProfileData();
+  }
+  initReveals();
+}
+
+function renderExploreTab() {
+  const notes = state.notes;
+  const all = notes ? sortNotesNewestFirst([...notes.unlocked, ...notes.preview]) : [];
+  const unlocked = all.filter(n => n.distance <= 50);
+  const preview = all.filter(n => n.distance > 50 && n.distance <= 200);
+  const distant = notes ? notes.distant : [];
+
+  const storyNote = unlocked.length > 0 ? unlocked[0] : (all.length > 0 ? all[0] : null);
+
+  root.innerHTML = `
+    <div class="screen" style="display:flex;flex-direction:column;background:var(--color-ivory-light)">
+      <!-- Globe Section -->
+      <div class="globe-section">
+        <div id="globe-viz"></div>
+        <div class="globe-overlay">
+          ${storyNote ? `
+            <div class="reveal">
+              <div class="globe-story-country">${MOODS[storyNote.moodTag]?.label || '纸条'}</div>
+              ${(() => {
+                const reveal = getRevealCopy(storyNote);
+                return `<blockquote class="globe-story-quote" style="filter:${reveal.blur};opacity:${reveal.opacity};${reveal.lineClamp !== 'none' ? 'display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:' + reveal.lineClamp + ';overflow:hidden;' : ''}">${reveal.text}${reveal.suffix}</blockquote>`;
+              })()}
+              <div class="globe-story-role">${storyNote.authorNickname || storyNote.authorCode} · ${fmtDist(storyNote.distance)}</div>
+            </div>
+          ` : '<div class="globe-story-quote" style="color:var(--color-cloud-medium)">附近暂无纸条</div>'}
+        </div>
+        <!-- GPS Status -->
+        <div class="gps-status"><div id="gpsStatus"></div></div>
+        <!-- Top Info Bar -->
+        <div class="absolute top-0 left-0 right-0 z-[500] px-4 pt-12 pb-3" style="background:linear-gradient(to bottom, rgba(250,249,245,0.95), transparent);">
+          <div class="flex justify-between items-start">
+            <div>
+              <h1 class="headline-2" style="color:var(--color-slate-dark);font-size:1.25rem">附近纸条</h1>
+              <p class="detail-s mt-1" style="color:var(--color-slate-light)" id="mapStats">
+                ${notes ? `<span style="color:var(--color-olive);font-weight:500">${unlocked.length}</span> 张可阅读 · <span style="color:#c4a35a;font-weight:500">${preview.length}</span> 张走近解锁` : '加载中...'}
+              </p>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              <div class="flex gap-1">
+                <button onclick="switchTab('list')" class="map-control-btn" style="width:auto;padding:0 12px;border-radius:2px">
+                  <span class="detail-s" style="color:var(--color-slate-light)">列表</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nearby Notes List -->
+      <div class="flex-1 overflow-y-auto px-4 pt-4 pb-24" style="background:var(--color-ivory-light)">
+        ${all.length === 0 && notes ? '<p class="paragraph-m text-center py-8" style="color:var(--color-cloud-medium)">附近暂无纸条</p>' : ''}
+        ${all.map(note => renderNoteCard(note)).join('')}
+        ${distant.map(d=>`
+          <button onclick="centerOnPoint(${d.lat}, ${d.lng})" class="quote-card mb-3 flex justify-between items-center w-full text-left" style="background:var(--color-slate-050);border-color:var(--color-slate-150)">
+            <div>
+              <p class="body-2" style="color:var(--color-slate-medium)">前方有${d.count} 张纸条</p>
+              <p class="detail-s mt-1" style="color:var(--color-cloud-medium)">${fmtDist(d.centerDistance)} · 定位到该区域</p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-cloud-medium)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- Map Controls -->
+      <div class="map-controls">
+        <button onclick="centerOnUser()" class="map-control-btn" title="定位到我的位置">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-slate-light)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+        </button>
+        <button onclick="loadNearbyNotes()" class="map-control-btn" title="刷新附近纸条">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-slate-light)" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </button>
+      </div>
+
+      ${renderTabBar()}
+    </div>`;
+}
+
+function renderTabBar() {
+  const tabs = [
+    {k:'explore',l:'地图',icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'},
+    {k:'list',l:'列表',icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'},
+    {k:'create',l:'发布',icon:'<div class="create-circle"><span>+</span></div>'},
+    {k:'profile',l:'我的',icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+  ];
+  return `<div class="tab-bar">
+    ${tabs.map(t=>`<button onclick="switchTab('${t.k}')" class="tab-btn ${state.tab===t.k?'active':''} ${t.k==='create'?'create-btn':''}">${t.icon}<span>${t.l}</span></button>`).join('')}
+  </div>`;
+}
+
+function switchTab(t) {
+  if (t === 'create') { resetCreateState(); state.screen = 'create'; render(); return; }
+  if (t === 'profile') state.profileView = 'main';
+  state.tab = t;
+  renderApp();
+}
+
+function getTabContent() {
+  if (state.tab === 'list') return renderListContent();
+  if (state.tab === 'profile') return renderProfileContent();
+  return '';
+}
+
+// ============ LIST ============
+function renderListContent() {
+  const n = state.notes;
+  if (!n) return `<div class="flex items-center justify-center h-full text-cloud-dark px-8" style="color:var(--color-cloud-dark)"><div class="w-8 h-8 border-2 border-slate-300 border-t-clay rounded-full animate-spin mr-3" style="border-color:var(--color-slate-200);border-top-color:var(--color-clay)"></div>加载中...</div>`;
+  const all = sortNotesNewestFirst([...n.unlocked, ...n.preview]);
+  return `
+    <div class="px-4 pt-14 pb-4">
+      <div class="flex justify-between items-end mb-6">
+        <div>
+          <h1 class="headline-2" style="color:var(--color-slate-dark);font-size:1.5rem">附近纸条</h1>
+          <p class="detail-s mt-1" style="color:var(--color-slate-light)">${n.summary.unlockedCount} 张可阅读 / ${n.summary.total} 张总数</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="loadNearbyNotes()" class="btn-secondary" style="color:var(--color-slate-dark);font-weight:500">刷新</button>
+          <button onclick="switchTab('explore')" class="btn-secondary" style="color:var(--color-clay);font-weight:500">地图视图</button>
+        </div>
+      </div>
+      ${all.length ? all.map(note=>renderNoteCard(note)).join('') : `
+        <div class="text-center py-20">
+          <p class="paragraph-m" style="color:var(--color-cloud-dark)">附近还没有纸条</p>
+          <p class="detail-s mt-2" style="color:var(--color-cloud-medium)">去放一个吧</p>
+        </div>
+      `}
+    </div>`;
+}
+
+function renderNoteCard(note) {
+  const distanceState = getDistanceState(note.distance);
+  const isUnlocked = distanceState === 'unlocked' || distanceState === 'near';
+  const reveal = getRevealCopy(note);
+  const mood = MOODS[note.moodTag];
+  const distLabel = isUnlocked ? fmtDist(note.distance) : getDistanceLabel(distanceState, note.distance);
+  const distColor = note.distance <= 50 ? 'var(--color-olive)' : note.distance <= 200 ? '#c4a35a' : 'var(--color-cloud-dark)';
+  const isFuzzy = reveal.blur !== 'none';
+  const authorLabel = note.authorNickname || note.authorCode || '匿名';
+  const readCount = Number.isFinite(Number(note.readCount)) ? Number(note.readCount) : 0;
+  const replyCount = Number.isFinite(Number(note.replyCount)) ? Number(note.replyCount) : 0;
+  const expiresLabel = note.expiresAt ? fmtTime(note.expiresAt) : (distanceState === 'unlocked' ? '刚刚' : distanceState === 'near' ? '走近后可见更多' : '远处纸条');
+
+  return `
+    <button onclick="openNote('${note.id}')" class="w-full text-left quote-card mb-3 reveal hover:shadow-sm transition-shadow" style="${note.isRead?'opacity:0.7':''};border-color:var(--color-slate-200)">
+      <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-2">
+          ${mood?`<span class="mood-badge" style="background:${mood.color}18;color:${mood.color}">${mood.label}</span>`:''}
+          <span class="detail-s" style="color:var(--color-cloud-dark)">${authorLabel}</span>
+        </div>
+        <span class="detail-s font-medium" style="color:${distColor}">${distLabel}</span>
+      </div>
+      ${distanceState !== 'unlocked' ? '<div class="quote-card__mark" style="font-size:1.5rem;color:var(--color-slate-300)">"</div>' : ''}
+      <p class="quote-card__text ${distanceState !== 'unlocked' ? 'text-slate-light' : ''}" style="${distanceState !== 'unlocked' ? 'color:var(--color-cloud-medium);font-style:italic' : ''};filter:${reveal.blur};opacity:${reveal.opacity};${isFuzzy ? 'display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;' : ''}">
+        ${reveal.text}${reveal.suffix}
+      </p>
+      ${distanceState !== 'unlocked' ? `<p class="detail-s mt-2 font-medium" style="color:#c4a35a">${reveal.label}</p>` : ''}
+      <div class="flex justify-between items-center mt-3">
+        <span class="detail-s" style="color:var(--color-cloud-medium)">${expiresLabel}</span>
+        <div class="flex gap-3 detail-s" style="color:var(--color-cloud-medium)">
+          <span>${readCount} 阅读</span><span>${replyCount} 回复</span>
+        </div>
+      </div>
+    </button>`;
+}
+
+
+// ============ DETAIL ============
+async function openNote(id) {
+  try {
+    const data = await apiPost(`/functions/v1/notes-read/${id}`, {
+      readerLat: state.location.lat,
+      readerLng: state.location.lng,
+      readerCode: state.profile?.anonymousCode,
+    });
+    if (!data.unlocked) { alert('距离太远：' + data.message); return; }
+    state.currentNote = data.note;
+    state.replies = data.replies || [];
+    state.screen = 'detail';
+    render();
+  } catch(e) { alert(e.message); }
+}
+
+function renderDetail() {
+  const n = state.currentNote;
+  const mood = MOODS[n.moodTag];
+  root.innerHTML = `
+    <div class="screen slide-up" style="background:var(--color-ivory-light)">
+      <div class="px-5 pt-14 pb-8">
+        <button onclick="backToApp()" class="flex items-center gap-1 mb-6 btn-secondary" style="color:var(--color-cloud-dark)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>返回
+        </button>
+
+        <div class="reveal">
+          <div class="flex justify-between items-start mb-4">
+            ${mood?`<span class="mood-badge" style="background:${mood.color}18;color:${mood.color}">${mood.label}</span>`:''}
+            <span class="detail-s" style="color:var(--color-cloud-dark)">${fmtTime(n.createdAt)}</span>
+          </div>
+
+          <div class="flex items-center gap-2 mb-3">
+            <span class="detail-s font-medium flex items-center gap-1" style="color:var(--color-olive)">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--color-olive)"></span>${fmtDist(n.distance)}
+            </span>
+          </div>
+
+          <p class="detail-s mb-1" style="color:var(--color-slate-light)">${n.authorNickname||n.authorCode}</p>
+
+          <div class="quote-card mb-6" style="border:none;background:transparent;padding:0">
+            <div class="quote-card__mark">"</div>
+            <p class="quote-card__text" style="font-size:clamp(1.125rem,3.5vw,1.375rem);line-height:1.5">${n.content}</p>
+          </div>
+
+          <div class="flex gap-4 detail-s mb-8" style="color:var(--color-cloud-dark)">
+            <span>${n.readCount} 阅读</span>
+            <span>${n.replyCount} 回复</span>
+            <span>${n.lifespanType==='permanent'?'永久':n.lifespanType==='24h'?'24小时':'7天'}</span>
+          </div>
+        </div>
+
+        <h3 class="headline-2 mb-4 reveal" style="font-size:1.125rem;color:var(--color-slate-dark)">回复</h3>
+        <div class="reveal">
+          ${state.replies.length===0?'<p class="paragraph-m" style="color:var(--color-cloud-medium)">还没有回复</p>':state.replies.map(r=>renderReplyItem(r,0)).join('')}
+        </div>
+
+        <div class="mt-6 pt-4 reveal" style="border-top:1px solid var(--color-slate-200)">
+          <div class="flex gap-2">
+            <input id="replyInput" placeholder="写一条回复..." class="input-field flex-1" style="border-radius:2px">
+            <button onclick="sendReply()" class="btn-primary" style="width:auto;padding:0 20px">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  initReveals();
+}
+
+function renderReplyItem(r, depth) {
+  const indent = depth * 14;
+  const borderColor = depth === 0 ? 'var(--color-slate-300)' : 'var(--color-slate-200)';
+  return `
+    <div class="mb-3" style="margin-left:${indent}px">
+      <div class="reply-item" style="border-left-color:${borderColor}">
+        <div class="flex justify-between items-center mb-1">
+          <span class="detail-s font-medium" style="color:var(--color-slate-light)">${r.author?.nickname||r.author?.anonymous_code||'匿名'}</span>
+          <span class="detail-s" style="color:var(--color-cloud-medium);font-size:0.6875rem">${fmtTime(r.createdAt)}</span>
+        </div>
+        <p class="body-2" style="color:var(--color-slate-medium)">${r.content}</p>
+      </div>
+      ${(r.children||[]).map(c=>renderReplyItem(c,depth+1)).join('')}
+    </div>`;
+}
+
+async function sendReply() {
+  const input = document.getElementById('replyInput');
+  const text = input.value.trim();
+  if (!text) return;
+  try {
+    await apiPost(`/functions/v1/replies/${state.currentNote.id}`, { content: text });
+    const data = await apiPost(`/functions/v1/notes-read/${state.currentNote.id}`, { readerLat: state.location.lat, readerLng: state.location.lng });
+    state.replies = data.replies || [];
+    renderDetail();
+  } catch(e) { alert(e.message); }
+}
+
+function backToApp() {
+  if (state.screen === 'create') resetCreateState();
+  state.screen = 'app';
+  state.currentNote = null;
+  render();
+}
+
+// ============ CREATE (3-step ritual from qianduan) ============
+const createState = {
+  step: 'emotion',
+  emotion: null,
+  sensations: [],
+  customSensation: '',
+  customOpen: false,
+  content: '',
+  phase: 'writing',
+  selectingEmotion: null,
+  life: '24h',
+};
+
+function resetCreateState() {
+  createState.step = 'emotion';
+  createState.emotion = null;
+  createState.sensations = [];
+  createState.customSensation = '';
+  createState.customOpen = false;
+  createState.content = '';
+  createState.phase = 'writing';
+  createState.selectingEmotion = null;
+  createState.life = '24h';
+}
+
+function waitMs(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function createPaperSeed(value) {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function createPaperRandom(seed) {
+  let s = seed || 1;
+  return () => {
+    s = Math.imul(s ^ (s >>> 15), 1 | s);
+    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
+    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createPaperClipPath(seedStr) {
+  const random = createPaperRandom(createPaperSeed(seedStr));
+  const edge = (x, y) => {
+    const xOff = (2 + random() * 3).toFixed(2);
+    const yOff = (2 + random() * 3).toFixed(2);
+    return `calc(${x} ${random() > 0.5 ? '+' : '-'} ${xOff}px) calc(${y} ${random() > 0.5 ? '+' : '-'} ${yOff}px)`;
+  };
+  return `polygon(${edge('0%','3%')},${edge('22%','0%')},${edge('51%','0%')},${edge('78%','0%')},${edge('100%','4%')},${edge('100%','31%')},${edge('100%','66%')},${edge('100%','96%')},${edge('76%','100%')},${edge('49%','100%')},${edge('21%','100%')},${edge('0%','95%')},${edge('0%','62%')},${edge('0%','28%')})`;
+}
+
+function renderCreate() {
+  if (createState.step === 'emotion') renderCreateEmotion();
+  else if (createState.step === 'body') renderCreateBody();
+  else renderCreateWriting();
+}
+
+function renderCreateEmotion() {
+  const selecting = createState.selectingEmotion;
+  root.innerHTML = `
+    <div class="screen slide-up drop-ritual drop-ritual__fade">
+      <button type="button" class="drop-ritual__cancel" onclick="backToApp()">取消</button>
+      <section class="emotion-picker">
+        <p class="emotion-picker__prompt">你现在感觉怎么样？</p>
+        <div class="emotion-picker__words">
+          ${EMOTIONS.map((e, i) => {
+            const pos = EMOTION_POSITIONS[e.id];
+            const isSelected = selecting === e.id;
+            const isDismissed = selecting && !isSelected;
+            const scatter = EMOTION_SCATTER[e.id];
+            let style = `color:${e.color};animation-delay:${0.1 + i * 0.08}s, ${5 + (i * 0.37) % 2}s;`;
+            if (isSelected) style += 'left:50%;top:18%;';
+            else if (pos) style += `left:${pos.left};top:${pos.top};`;
+            if (isDismissed) style += `transform:translate(calc(-50% + ${scatter.x}px), calc(-50% + ${scatter.y}px)) scale(0.9);opacity:0;`;
+            const cls = 'emotion-word' + (isSelected ? ' is-selected' : '') + (isDismissed ? ' is-dismissed' : '');
+            return `<button type="button" class="${cls}" style="${style}" onclick="chooseCreateEmotion('${e.id}')">${e.label}</button>`;
+          }).join('')}
+        </div>
+      </section>
+    </div>`;
+}
+
+function chooseCreateEmotion(id) {
+  if (createState.selectingEmotion) return;
+  createState.selectingEmotion = id;
+  renderCreateEmotion();
+  setTimeout(() => {
+    createState.emotion = id;
+    createState.sensations = [];
+    createState.customSensation = '';
+    createState.customOpen = false;
+    createState.selectingEmotion = null;
+    createState.step = 'body';
+    renderCreate();
+  }, 1200);
+}
+
+function renderCreateBody() {
+  const emotion = EMOTION_BY_ID[createState.emotion];
+  if (!emotion) { createState.step = 'emotion'; renderCreate(); return; }
+  root.innerHTML = `
+    <div class="screen slide-up drop-ritual drop-ritual__fade">
+      <button type="button" class="drop-ritual__cancel" onclick="backToApp()">取消</button>
+      <section class="body-scan">
+        <div class="body-scan__figure" aria-hidden="true">
+          <svg viewBox="0 0 220 520"><path d="M110 35 C85 35 70 52 70 76 C70 100 86 116 110 116 C134 116 150 100 150 76 C150 52 135 35 110 35 M110 116 C108 150 104 174 92 205 C82 232 69 255 52 286 M110 116 C112 150 116 174 128 205 C138 232 151 255 168 286 M92 205 C86 248 84 287 88 324 C92 365 98 414 82 480 M128 205 C134 248 136 287 132 324 C128 365 122 414 138 480 M78 154 C50 180 38 220 38 268 M142 154 C170 180 182 220 182 268"/></svg>
+        </div>
+        <div class="body-scan__labels">
+          ${emotion.bodySuggestions.map((s, i) => {
+            const active = createState.sensations.includes(s);
+            const pos = BODY_LABEL_POSITIONS[i % BODY_LABEL_POSITIONS.length];
+            const bg = active ? emotion.glowColor : '';
+            const border = active ? emotion.color : '';
+            const safe = s.replace(/'/g, "\\'");
+            return `<button type="button" class="body-scan__label${active ? ' body-scan__label--active' : ''}" style="left:${pos.left};top:${pos.top};color:${emotion.color};${active ? `border-color:${border};background:${bg};` : ''}animation-delay:${i * 0.15}s, ${4.8 + i * 0.18}s" onclick="toggleCreateSensation('${safe}')">${s}</button>`;
+          }).join('')}
+        </div>
+        <div class="body-scan__custom">
+          ${!createState.customOpen ? `<button type="button" class="body-scan__custom-trigger" onclick="openCustomSensation()">或者，用你自己的话</button>` : ''}
+          ${createState.customOpen ? `<input class="body-scan__custom-input" id="customSensationInput" placeholder="描述身体的感觉…" value="${createState.customSensation.replace(/"/g, '&quot;')}" oninput="createState.customSensation=this.value">` : ''}
+          <button type="button" class="body-scan__continue" onclick="continueToWriting()">继续</button>
+        </div>
+      </section>
+    </div>`;
+  if (createState.customOpen) {
+    const input = document.getElementById('customSensationInput');
+    if (input) input.focus();
+  }
+}
+
+function openCustomSensation() {
+  createState.customOpen = true;
+  renderCreateBody();
+}
+
+function toggleCreateSensation(s) {
+  const idx = createState.sensations.indexOf(s);
+  if (idx >= 0) createState.sensations.splice(idx, 1);
+  else createState.sensations.push(s);
+  renderCreateBody();
+}
+
+function continueToWriting() {
+  const trimmed = createState.customSensation.trim();
+  if (trimmed && !createState.sensations.includes(trimmed)) {
+    createState.sensations.push(trimmed);
+  }
+  createState.step = 'writing';
+  createState.phase = 'writing';
+  renderCreate();
+}
+
+function renderCreateWriting() {
+  const emotion = EMOTION_BY_ID[createState.emotion];
+  if (!emotion) { createState.step = 'emotion'; renderCreate(); return; }
+  const phase = createState.phase;
+  const isDark = phase === 'dark' || phase === 'echo';
+  const showStage = !isDark;
+  const visibleSensations = createState.sensations.filter(Boolean);
+  const status = [emotion.label, ...visibleSensations].join(' · ');
+  const echoSensation = visibleSensations[0] || emotion.bodySuggestions[Math.floor(Math.random() * emotion.bodySuggestions.length)];
+  const clipPath = createPaperClipPath(createState.content + emotion.id);
+  const isFolding = phase === 'folding' || phase === 'falling';
+  const isFalling = phase === 'falling';
+  const safeContent = createState.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  root.innerHTML = `
+    <div class="screen slide-up drop-ritual ${phase === 'writing' ? 'drop-ritual__fade' : ''} ${isDark ? 'drop-ritual--' + phase : ''}">
+      ${phase === 'writing' ? `<button type="button" class="drop-ritual__cancel" onclick="backToApp()">取消</button>` : ''}
+      ${phase === 'echo' ? `<p class="writing-canvas__echo">你说的是——${emotion.label}，和${echoSensation}。</p>` : ''}
+      ${showStage ? `
+        <section class="writing-canvas">
+          <p class="writing-canvas__status" style="color:${emotion.color}">${status}</p>
+          <div class="writing-canvas__paper-wrap${isFalling ? ' is-falling' : ''}" style="--clip-path:${clipPath};--emotion-glow:${emotion.glowColor}">
+            <article class="paper-note-drop">
+              <div class="paper-note-drop__surface" style="--clip-path:${clipPath};--emotion-glow:${emotion.glowColor}">
+                <textarea class="paper-note-drop__textarea" id="createContent" placeholder="想说点什么都好……" maxlength="500" oninput="createState.content=this.value">${safeContent}</textarea>
+              </div>
+            </article>
+            ${isFolding ? `
+              <div class="writing-canvas__fold is-active" aria-hidden="true">
+                <span class="writing-canvas__fold-half writing-canvas__fold-half--top" style="--clip-path:${clipPath}"></span>
+                <span class="writing-canvas__fold-half writing-canvas__fold-half--bottom" style="--clip-path:${clipPath}"></span>
+              </div>
+            ` : ''}
+          </div>
+          <button type="button" class="writing-canvas__drop${phase !== 'writing' ? ' is-hidden' : ''}" onclick="dropCreateNote()">放下</button>
+        </section>
+      ` : ''}
+    </div>`;
+
+  const textarea = document.getElementById('createContent');
+  if (textarea && phase === 'writing') {
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+  }
+}
+
+async function dropCreateNote() {
+  if (createState.phase !== 'writing') return;
+  const content = (document.getElementById('createContent')?.value || createState.content).trim();
+  if (!content) { alert('请输入内容'); return; }
+  createState.content = content;
+
+  const emotion = EMOTION_BY_ID[createState.emotion];
+  const topicTags = createState.sensations.filter(Boolean).slice(0, 3);
+  let createError = null;
+  const apiPromise = apiPostWithTimeout('/functions/v1/notes-create', {
+    content,
+    lat: state.location.lat,
+    lng: state.location.lng,
+    lifespanType: createState.life,
+    moodTag: emotion ? emotion.moodTag : null,
+    topicTags,
+    authorCode: state.profile?.anonymousCode || undefined,
+  }).catch(e => { createError = e; return null; });
+
+  createState.phase = 'folding';
+  renderCreateWriting();
+  await waitMs(1000);
+
+  createState.phase = 'falling';
+  renderCreateWriting();
+  await waitMs(600);
+
+  createState.phase = 'dark';
+  renderCreateWriting();
+  await waitMs(400);
+
+  createState.phase = 'echo';
+  renderCreateWriting();
+  await waitMs(4600);
+
+  await apiPromise;
+  if (createError) {
+    createState.phase = 'writing';
+    renderCreateWriting();
+    alert(createError.message || '发布失败');
+    return;
+  }
+
+  state.notes = null;
+  resetCreateState();
+  state.screen = 'app';
+  state.tab = 'explore';
+  render();
+  setTimeout(() => loadNearbyNotes(), 300);
+}
+// ============ PROFILE ============
+async function loadProfileData() {
+  if (!state.profile?.anonymousCode) return;
+  try {
+    const [stats, mine, history] = await Promise.all([
+      apiPost('/functions/v1/profile-stats', { authorCode: state.profile.anonymousCode }),
+      apiPost('/functions/v1/notes-mine', { authorCode: state.profile.anonymousCode }),
+      apiPost('/functions/v1/read-history', { authorCode: state.profile.anonymousCode }),
+    ]);
+    state.profileStats = stats;
+    state.myNotes = mine.notes || [];
+    state.readHistory = history.reads || [];
+    if (state.tab === 'profile' && state.screen === 'app') renderApp();
+  } catch (e) {
+    console.error(e);
+    if (state.tab === 'profile' && state.screen === 'app') renderApp();
+  }
+}
+
+function openProfileView(view) {
+  state.profileView = view;
+  renderApp();
+}
+
+function renderProfileContent() {
+  if (!state.profile) {
+    return `<div class="px-5 pt-20 text-center"><p class="paragraph-m" style="color:var(--color-cloud-dark)">尚未创建身份</p></div>`;
+  }
+  if (state.profileView === 'my-notes') return renderProfileMyNotes();
+  if (state.profileView === 'read-history') return renderProfileReadHistory();
+
+  const g = GRADIENTS[state.profile.avatarGradient || 0];
+  const stats = state.profileStats;
+  const notesCount = stats?.notesCount ?? '—';
+  const readCount = stats?.readCount ?? '—';
+  const receivedReplies = stats?.receivedReplies ?? '—';
+
+  return `
+    <div class="px-5 pt-14 pb-8">
+      <div class="flex flex-col items-center mb-8 is-visible">
+        <div class="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${(state.profile.anonymousCode || '?')[0]}</div>
+        <h2 class="headline-2" style="color:var(--color-slate-dark);font-size:1.25rem">${state.profile.anonymousCode}</h2>
+        ${state.profile.nickname ? `<p class="paragraph-m mt-1" style="color:var(--color-slate-light)">${state.profile.nickname}</p>` : ''}
+        <p class="detail-s mt-2" style="color:var(--color-cloud-medium)">匿名代号 · 仅用于附近互动</p>
+      </div>
+      <div class="flex justify-around quote-card mb-8 is-visible" style="padding:var(--sp-20);border-color:var(--color-slate-200)">
+        <div class="text-center"><p class="headline-2" style="font-size:1.5rem;color:var(--color-slate-dark)">${notesCount}</p><p class="detail-s mt-1" style="color:var(--color-cloud-dark)">我放的纸条</p></div>
+        <div class="text-center"><p class="headline-2" style="font-size:1.5rem;color:var(--color-slate-dark)">${readCount}</p><p class="detail-s mt-1" style="color:var(--color-cloud-dark)">我读的纸条</p></div>
+        <div class="text-center"><p class="headline-2" style="font-size:1.5rem;color:var(--color-slate-dark)">${receivedReplies}</p><p class="detail-s mt-1" style="color:var(--color-cloud-dark)">收到的回复</p></div>
+      </div>
+      <div class="space-y-2 is-visible">
+        <button type="button" onclick="openProfileView('my-notes')" class="w-full quote-card flex justify-between items-center text-left" style="padding:14px 16px;border-color:var(--color-slate-200)">
+          <span class="body-2" style="color:var(--color-slate-dark)">我的纸条</span>
+          <span class="detail-s" style="color:var(--color-cloud-medium)">${state.myNotes ? state.myNotes.length + ' 条' : '…'}</span>
+        </button>
+        <button type="button" onclick="openProfileView('read-history')" class="w-full quote-card flex justify-between items-center text-left" style="padding:14px 16px;border-color:var(--color-slate-200)">
+          <span class="body-2" style="color:var(--color-slate-dark)">阅读历史</span>
+          <span class="detail-s" style="color:var(--color-cloud-medium)">${state.readHistory ? state.readHistory.length + ' 条' : '…'}</span>
+        </button>
+        <div class="quote-card mt-4" style="padding:14px 16px;border-color:var(--color-slate-150);background:var(--color-slate-050)">
+          <p class="detail-s font-medium mb-2" style="color:var(--color-cloud-dark)">关于 DeadDrop</p>
+          <p class="body-2" style="color:var(--color-slate-light);line-height:1.5">在真实地点留下匿名纸条，走近才能阅读。你的位置仅用于附近查询，不会公开精确坐标。</p>
+        </div>
+        <button type="button" onclick="logout()" class="w-full quote-card text-center mt-4" style="padding:14px 16px;border-color:var(--color-clay);color:var(--color-clay)">
+          <span class="body-2 font-medium">退出登录</span>
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderProfileMyNotes() {
+  const notes = state.myNotes;
+  return `
+    <div class="px-5 pt-14 pb-8">
+      <button type="button" onclick="openProfileView('main')" class="flex items-center gap-1 mb-6 btn-secondary" style="color:var(--color-cloud-dark)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>返回
+      </button>
+      <h2 class="headline-2 mb-4" style="color:var(--color-slate-dark);font-size:1.25rem">我的纸条</h2>
+      ${!notes ? '<p class="paragraph-m" style="color:var(--color-cloud-medium)">加载中…</p>' : ''}
+      ${notes && notes.length === 0 ? '<p class="paragraph-m text-center py-12" style="color:var(--color-cloud-medium)">还没有放过纸条<br><span class="detail-s">去地图页点「发布」放下第一张吧</span></p>' : ''}
+      ${(notes || []).map(n => {
+        const mood = MOODS[n.moodTag];
+        const life = n.lifespanType === 'permanent' ? '永久' : n.lifespanType === '7d' ? '7天' : '24小时';
+        return `
+          <div class="quote-card mb-3 is-visible" style="border-color:var(--color-slate-200)">
+            <div class="flex justify-between items-start mb-2">
+              ${mood ? `<span class="mood-badge" style="background:${mood.color}18;color:${mood.color}">${mood.label}</span>` : ''}
+              <span class="detail-s" style="color:var(--color-cloud-medium)">${fmtTime(n.createdAt)}</span>
+            </div>
+            <p class="quote-card__text" style="font-size:0.9375rem">${n.content}</p>
+            <div class="flex justify-between mt-3 detail-s" style="color:var(--color-cloud-medium)">
+              <span>${life}</span>
+              <span>${n.readCount || 0} 阅读 · ${n.replyCount || 0} 回复</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderProfileReadHistory() {
+  const reads = state.readHistory;
+  return `
+    <div class="px-5 pt-14 pb-8">
+      <button type="button" onclick="openProfileView('main')" class="flex items-center gap-1 mb-6 btn-secondary" style="color:var(--color-cloud-dark)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>返回
+      </button>
+      <h2 class="headline-2 mb-4" style="color:var(--color-slate-dark);font-size:1.25rem">阅读历史</h2>
+      ${!reads ? '<p class="paragraph-m" style="color:var(--color-cloud-medium)">加载中…</p>' : ''}
+      ${reads && reads.length === 0 ? '<p class="paragraph-m text-center py-12" style="color:var(--color-cloud-medium)">还没有阅读记录<br><span class="detail-s">走近附近的纸条即可解锁阅读</span></p>' : ''}
+      ${(reads || []).map(r => {
+        const mood = MOODS[r.moodTag];
+        return `
+          <button type="button" onclick="state.screen='app';state.tab='explore';openNote('${r.noteId}')" class="w-full text-left quote-card mb-3 is-visible" style="border-color:var(--color-slate-200)">
+            <div class="flex justify-between items-start mb-2">
+              ${mood ? `<span class="mood-badge" style="background:${mood.color}18;color:${mood.color}">${mood.label}</span>` : ''}
+              <span class="detail-s" style="color:var(--color-cloud-medium)">${fmtTime(r.readAt)}</span>
+            </div>
+            <p class="body-2" style="color:var(--color-slate-medium)">${r.contentPreview}…</p>
+            <p class="detail-s mt-2" style="color:var(--color-cloud-dark)">${r.authorNickname || r.authorCode}</p>
+          </button>`;
+      }).join('')}
+    </div>`;
+}
+
+function logout() {
+  state.profile = null;
+  state.profileStats = null;
+  state.profileView = 'main';
+  state.myNotes = null;
+  state.readHistory = null;
+  state.screen = 'welcome';
+  if (state.watchId) clearInterval(state.watchId);
+  if (state.geoWatchId) navigator.geolocation.clearWatch(state.geoWatchId);
+  state.globe = null;
+  render();
+}
+
+// ============ DATA ============
+function updateNoteDistances() {
+  if (!state.notes) return;
+  [...state.notes.unlocked, ...state.notes.preview].forEach(n => {
+    n.distance = distBetween(state.location.lat, state.location.lng, n.lat, n.lng);
+  });
+}
+
+async function loadNearbyNotes() {
+  try {
+    const data = await apiPost('/functions/v1/notes-nearby', { lat: state.location.lat, lng: state.location.lng });
+    state.notes = data;
+    updateNoteDistances();
+    state.localMapZoom = computeAdaptiveMapZoom();
+    // Refresh globe dots
+    if (globeGroup) {
+      globeGroup.select("g.dots").remove();
+      if (globeProjection) {
+        globeProjection = buildLocalProjection(globeProjection.width, globeProjection.height, globeProjection.center, state.localMapZoom || DEFAULT_LOCAL_MAP_ZOOM);
+      }
+      initGlobeDots();
+      centerToNearestDotIfInvisible();
+    }
+    if (state.screen === 'app') renderApp();
+  } catch(e) { console.error(e); }
+}
+
+let simWalkInterval = null;
+function toggleSimulatedWalk() {
+  if (simWalkInterval) {
+    clearInterval(simWalkInterval);
+    simWalkInterval = null;
+    alert('已停止模拟行走');
+  } else {
+    simWalkInterval = setInterval(() => {
+      const drift = 0.00004;
+      state.location.lat += (Math.random() - 0.5) * drift * 2;
+      state.location.lng += (Math.random() - 0.5) * drift * 2;
+      state.location.accuracy = 5 + Math.random() * 8;
+      updateNoteDistances();
+      updateGpsStatusUI();
+      if (state.screen === 'app' && state.tab === 'explore') renderApp();
+    }, 1500);
+    alert('已开始模拟行走（每1.5秒更新位置）');
+  }
+}
+
+// ============ INIT ============
+render();
+</script>
+</body>
+</html>

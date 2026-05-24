@@ -1,0 +1,77 @@
+@import "mapbox-gl/dist/mapbox-gl.css";
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=LXGW+WenKai&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap");
+
+:root {
+  --background-deep: #0f0f1a;
+  --background-gradient: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  --paper-warm: #f5f0e8;
+  --selection-sadness: rgba(107, 122, 161, 0.3);
+  --font-body: "Noto Serif SC", "Noto Serif", serif;
+  --font-handwritten: "LXGW WenKai", "Caveat", cursive;
+  --font-small: "Noto Sans SC", "Noto Sans", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: var(--background-deep);
+  color: var(--paper-warm);
+  font-family: var(--font-body);
+  overflow: hidden;
+  scrollbar-width: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  color: inherit;
+  font: inherit;
+}
+
+button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+}
+
+::selection {
+  background: var(--selection-sadness);
+  color: var(--paper-warm);
+}
+
+.deaddrop-root {
+  min-height: 100vh;
+  background: var(--background-gradient);
+}

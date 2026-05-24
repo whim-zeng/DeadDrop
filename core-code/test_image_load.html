@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h3>Static SVG image</h3>
+  <svg id="static" viewBox="0 0 300 300" width="300" height="300">
+    <image id="static-img" href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="0" y="0" width="256" height="256"/>
+  </svg>
+  
+  <h3>Dynamic SVG image</h3>
+  <svg id="dynamic" viewBox="0 0 300 300" width="300" height="300"></svg>
+  
+  <div id="log"></div>
+  
+  <script>
+    function log(msg) {
+      document.getElementById('log').innerHTML += '<p>' + msg + '</p>';
+    }
+    
+    // Check static image
+    const staticImg = document.getElementById('static-img');
+    log('Static img naturalWidth: ' + staticImg.naturalWidth);
+    log('Static img complete: ' + staticImg.complete);
+    
+    staticImg.onload = () => log('Static img LOADED, nw=' + staticImg.naturalWidth);
+    staticImg.onerror = () => log('Static img ERROR');
+    
+    // Create dynamic image
+    const dynamicSvg = document.getElementById('dynamic');
+    const dynamicImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    dynamicImg.setAttribute('href', 'http://127.0.0.1:3000/tiles/osm/15/27438/13388.png');
+    dynamicImg.setAttribute('x', '0');
+    dynamicImg.setAttribute('y', '0');
+    dynamicImg.setAttribute('width', '256');
+    dynamicImg.setAttribute('height', '256');
+    
+    log('Dynamic img before append naturalWidth: ' + dynamicImg.naturalWidth);
+    
+    dynamicImg.onload = () => log('Dynamic img LOADED, nw=' + dynamicImg.naturalWidth);
+    dynamicImg.onerror = () => log('Dynamic img ERROR');
+    
+    dynamicSvg.appendChild(dynamicImg);
+    
+    log('Dynamic img after append naturalWidth: ' + dynamicImg.naturalWidth);
+    
+    setTimeout(() => {
+      log('After 2s - Static nw: ' + staticImg.naturalWidth + ', Dynamic nw: ' + dynamicImg.naturalWidth);
+    }, 2000);
+    
+    setTimeout(() => {
+      log('After 5s - Static nw: ' + staticImg.naturalWidth + ', Dynamic nw: ' + dynamicImg.naturalWidth);
+    }, 5000);
+  </script>
+</body>
+</html>

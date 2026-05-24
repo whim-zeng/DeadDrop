@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; background: #333; }
+    svg { width: 300px; height: 300px; margin: 10px; background: #fff; }
+  </style>
+</head>
+<body>
+  <h3 style="color:white">Test A: Negative x,y</h3>
+  <svg viewBox="0 0 300 300">
+    <image href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="-50" y="-50" width="256" height="256"/>
+  </svg>
+
+  <h3 style="color:white">Test B: preserveAspectRatio=none</h3>
+  <svg viewBox="0 0 300 300">
+    <image href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="0" y="0" width="256" height="256" preserveAspectRatio="none"/>
+  </svg>
+
+  <h3 style="color:white">Test C: Negative x,y + preserveAspectRatio=none</h3>
+  <svg viewBox="0 0 300 300">
+    <image href="http://127.0.0.1:3000/tiles/osm/15/27438/13388.png" x="-50" y="-50" width="256" height="256" preserveAspectRatio="none"/>
+  </svg>
+</body>
+</html>

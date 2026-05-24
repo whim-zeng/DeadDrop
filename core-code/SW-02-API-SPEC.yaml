@@ -1,0 +1,678 @@
+openapi: 3.0.3
+info:
+  title: DeadDrop Core API
+  description: |
+    DeadDrop 后端核心 API 规范。提供空间数据查询、纸条生命周期管理、
+    匿名回复与实时 Presence 能力。所有空间计算基于 PostGIS GEOGRAPHY 类型。
+  version: 1.0.0
+  contact:
+    name: DeadDrop Backend Team
+servers:
+  - url: https://{project-ref}.supabase.co/functions/v1
+    description: Supabase Edge Functions (Production)
+    variables:
+      project-ref:
+        default: your-project-ref
+        description: Supabase project reference ID
+
+paths:
+  /notes/nearby:
+    post:
+      summary: 附近纸条距离分层查询
+      description: |
+        根据用户当前位置返回三层数据：
+        - unlocked (50m内): 完整内容，可阅读
+        - preview (50-200m): 仅30字摘要
+        - distant (200m+): 聚合数量提示
+      operationId: getNearbyNotes
+      tags:
+        - Notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NearbyRequest'
+      responses:
+        '200':
+          description: 附近纸条分层数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyResponse'
+        '400':
+          description: 坐标参数无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+
+  /notes/heatmap:
+    post:
+      summary: 热力图网格聚合查询
+      description: |
+        按地图视口边界和缩放级别返回网格聚合数据，
+        支持情绪筛选和时间范围过滤。
+      operationId: getHeatmap
+      tags:
+        - Notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatmapRequest'
+      responses:
+        '200':
+          description: 热力图聚合数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatmapResponse'
+        '400':
+          description: 视口参数无效
+        '500':
+          description: 服务器内部错误
+
+  /notes:
+    post:
+      summary: 发布新纸条
+      description: |
+        在指定位置放下一张纸条。系统自动关联最近地点（50m内），
+        若未提供话题标签则触发 AI 自动提取（SW-03）。
+      operationId: createNote
+      tags:
+        - Notes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteRequest'
+      responses:
+        '201':
+          description: 纸条创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateNoteResponse'
+        '400':
+          description: 请求参数验证失败
+        '401':
+          description: 未认证
+        '500':
+          description: 创建失败
+
+  /notes/{id}/read:
+    post:
+      summary: 阅读纸条（带位置验证）
+      description: |
+        验证读者位置与纸条距离，通过则返回完整内容并记录阅读。
+        首次阅读触发纸条生命周期延长。
+      operationId: readNote
+      tags:
+        - Notes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadNoteRequest'
+      responses:
+        '200':
+          description: 阅读成功，返回完整内容
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadNoteResponse'
+        '403':
+          description: 距离过远，未解锁
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlockFailedResponse'
+        '404':
+          description: 纸条不存在
+        '410':
+          description: 纸条已过期或归档
+
+  /notes/{id}/replies:
+    get:
+      summary: 获取纸条回复列表
+      description: 返回按时间排序的回复列表，已组织为嵌套结构
+      operationId: listReplies
+      tags:
+        - Replies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 回复列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyListResponse'
+        '404':
+          description: 纸条不存在
+
+    post:
+      summary: 创建匿名回复
+      description: |
+        对纸条或另一条回复进行回复。最大嵌套深度为2层。
+        新回复通过 Realtime 广播给频道内用户。
+      operationId: createReply
+      tags:
+        - Replies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReplyRequest'
+      responses:
+        '201':
+          description: 回复创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reply'
+        '400':
+          description: 参数错误或超出嵌套深度
+        '401':
+          description: 未认证
+        '404':
+          description: 纸条或父回复不存在
+        '410':
+          description: 纸条已不可用
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth JWT token
+
+  schemas:
+    NearbyRequest:
+      type: object
+      required:
+        - lat
+        - lng
+      properties:
+        lat:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          example: 31.2304
+        lng:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          example: 121.4737
+        user_accuracy:
+          type: number
+          description: GPS精度（米），用于容差计算
+          default: 10
+          example: 15
+        filter_type:
+          type: string
+          enum: [all, text, voice]
+          default: all
+        filter_mood:
+          type: string
+          enum: [happy, sad, angry, anxious, love, thought, rant]
+        filter_topic:
+          type: string
+          description: 话题标签关键词
+          example: "失恋"
+        filter_time:
+          type: string
+          enum: [1h, 24h, 7d, 30d]
+        filter_lifespan:
+          type: string
+          enum: [expiring, hot, permanent]
+        sort_by:
+          type: string
+          enum: [recent, distance, reads, replies]
+          default: distance
+        limit:
+          type: integer
+          default: 20
+          maximum: 100
+        offset:
+          type: integer
+          default: 0
+
+    NearbyResponse:
+      type: object
+      properties:
+        unlocked:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnlockedNote'
+          description: 50m内完整纸条
+        preview:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviewNote'
+          description: 50-200m摘要
+        distant:
+          type: array
+          items:
+            $ref: '#/components/schemas/DistantCluster'
+          description: 200m+聚合
+        summary:
+          $ref: '#/components/schemas/NearbySummary'
+        locationId:
+          type: string
+          format: uuid
+          description: 若用户在注册地点半径内，返回地点ID
+          nullable: true
+
+    UnlockedNote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          maxLength: 500
+        contentPreview:
+          type: string
+          maxLength: 30
+        voiceDuration:
+          type: integer
+          nullable: true
+        distance:
+          type: number
+          description: 精确距离（米）
+        lat:
+          type: number
+        lng:
+          type: number
+        authorCode:
+          type: string
+          example: "孤独的美食家_2847"
+        authorNickname:
+          type: string
+          nullable: true
+        moodTag:
+          type: string
+        topicTags:
+          type: array
+          items:
+            type: string
+        noteType:
+          type: string
+          enum: [text, voice]
+        lifespanType:
+          type: string
+          enum: [24h, 7d, permanent]
+        expiresAt:
+          type: string
+          format: date-time
+        readCount:
+          type: integer
+        replyCount:
+          type: integer
+        isRead:
+          type: boolean
+        isAgentLocation:
+          type: boolean
+
+    PreviewNote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentPreview:
+          type: string
+          maxLength: 30
+        distance:
+          type: number
+        lat:
+          type: number
+        lng:
+          type: number
+        noteType:
+          type: string
+          enum: [text, voice]
+        moodTag:
+          type: string
+        readCount:
+          type: integer
+
+    DistantCluster:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+        count:
+          type: integer
+          description: 该聚合区域纸条数量
+        centerDistance:
+          type: number
+          description: 距用户的距离（米）
+
+    NearbySummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        unlockedCount:
+          type: integer
+        previewCount:
+          type: integer
+        distantCount:
+          type: integer
+
+    HeatmapRequest:
+      type: object
+      required:
+        - north
+        - south
+        - east
+        - west
+        - zoom
+      properties:
+        north:
+          type: number
+          description: 视口北边界纬度
+        south:
+          type: number
+          description: 视口南边界纬度
+        east:
+          type: number
+          description: 视口东边界经度
+        west:
+          type: number
+          description: 视口西边界经度
+        zoom:
+          type: integer
+          description: 地图缩放级别
+          minimum: 1
+          maximum: 20
+        time_range:
+          type: string
+          enum: [24h, 7d, 30d]
+        filter_mood:
+          type: string
+          description: 情绪筛选
+
+    HeatmapResponse:
+      type: object
+      properties:
+        grids:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeatmapGrid'
+        total_grids:
+          type: integer
+        grid_size:
+          type: number
+          description: 网格尺寸（度）
+
+    HeatmapGrid:
+      type: object
+      properties:
+        grid_lat:
+          type: number
+        grid_lng:
+          type: number
+        note_count:
+          type: integer
+        total_reads:
+          type: integer
+        total_replies:
+          type: integer
+        avg_mood:
+          type: string
+          nullable: true
+
+    CreateNoteRequest:
+      type: object
+      required:
+        - content
+        - lat
+        - lng
+        - lifespanType
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+        voiceKey:
+          type: string
+          description: Supabase Storage 上传后的文件 key
+          nullable: true
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          minimum: -180
+          maximum: 180
+        lifespanType:
+          type: string
+          enum: [24h, 7d, permanent]
+        moodTag:
+          type: string
+          enum: [happy, sad, angry, anxious, love, thought, rant]
+        topicTags:
+          type: array
+          items:
+            type: string
+          maxItems: 3
+
+    CreateNoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        lifespanType:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        moodTag:
+          type: string
+          nullable: true
+        topicTags:
+          type: array
+          items:
+            type: string
+        noteType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ReadNoteRequest:
+      type: object
+      required:
+        - readerLat
+        - readerLng
+      properties:
+        readerLat:
+          type: number
+        readerLng:
+          type: number
+        readerAccuracy:
+          type: number
+          default: 10
+
+    ReadNoteResponse:
+      type: object
+      properties:
+        note:
+          $ref: '#/components/schemas/NoteDetail'
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reply'
+        isFirstRead:
+          type: boolean
+        distance:
+          type: number
+        unlocked:
+          type: boolean
+
+    UnlockFailedResponse:
+      type: object
+      properties:
+        unlocked:
+          type: boolean
+          example: false
+        distance:
+          type: number
+        requiredDistance:
+          type: number
+        message:
+          type: string
+          example: "You are 120m away. Get within 50m to unlock."
+
+    NoteDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        voiceUrl:
+          type: string
+          nullable: true
+        authorCode:
+          type: string
+        authorNickname:
+          type: string
+          nullable: true
+        moodTag:
+          type: string
+        topicTags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        readCount:
+          type: integer
+        lifespanType:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    CreateReplyRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 300
+        voiceKey:
+          type: string
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: 回复某条回复（嵌套），null 则为顶层回复
+
+    Reply:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        voiceUrl:
+          type: string
+          nullable: true
+        voiceDuration:
+          type: integer
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        author:
+          $ref: '#/components/schemas/AuthorInfo'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reply'
+
+    ReplyListResponse:
+      type: object
+      properties:
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reply'
+
+    AuthorInfo:
+      type: object
+      properties:
+        anonymous_code:
+          type: string
+        nickname:
+          type: string
+          nullable: true
+        avatar_gradient:
+          type: string
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+          nullable: true
